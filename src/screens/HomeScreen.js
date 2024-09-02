@@ -14,6 +14,7 @@ import WeekDays from "./components/WeekDays";
 import ProgressGraph from "./components/ProgressGraph";
 import WelcomeUser from "./WelcomeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logout } from "./utils/auth";
 
 const { width } = Dimensions.get("window");
 
@@ -40,6 +41,16 @@ const HomeScreen = ({ navigation }) => {
     "Friday",
     "Saturday",
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Logout failed. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -197,6 +208,10 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -215,7 +230,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 10,
-    paddingLeft: 10,
+    paddingHorizontal: 10,
   },
   dateText: {
     fontSize: 24,
@@ -305,6 +320,20 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  logoutButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 15,
+    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  logoutButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

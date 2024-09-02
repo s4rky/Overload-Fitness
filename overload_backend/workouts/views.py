@@ -1,5 +1,5 @@
 import logging
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import check_password
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
@@ -59,6 +59,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=False, methods=["post"])
+    @method_decorator(ensure_csrf_cookie)
+    def logout(self, request):
+        logout(request)
+        return Response({"message": "Logout successful"})
 
 
 class WorkoutViewSet(viewsets.ModelViewSet):

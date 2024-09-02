@@ -12,58 +12,27 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { login, fetchCsrfToken } from "./utils/auth";
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [csrfToken, setCsrfToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchCsrfToken();
-  }, []);
-
-  const fetchCsrfToken = async () => {
-    try {
-      const response = await fetch(
-        "http://192.168.2.50:8000/api/get-csrf-token/",
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      const data = await response.json();
-      setCsrfToken(data.csrfToken);
-      await AsyncStorage.setItem("csrfToken", data.csrfToken);
-    } catch (error) {
+    fetchCsrfToken().catch((error) => {
       console.error("Error fetching CSRF token:", error);
-    }
-  };
+    });
+  }, []);
 
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const url = "http://192.168.2.50:8000/api/users/login/";
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: "include",
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await AsyncStorage.setItem("csrfToken", data.csrfToken);
-        await AsyncStorage.setItem("username", username);
-        await AsyncStorage.setItem("nickname", data.nickname || username);
-        navigation.navigate("Home", { username: username });
-      } else {
-        throw new Error(data?.error || "Login failed");
-      }
+      const data = await login(username, password);
+      await AsyncStorage.setItem("csrfToken", data.csrfToken);
+      await AsyncStorage.setItem("username", username);
+      await AsyncStorage.setItem("nickname", data.nickname || username);
+      navigation.navigate("Home", { username: username });
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed. Please try again.");
