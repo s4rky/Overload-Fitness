@@ -1,10 +1,10 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const WelcomeUser = ({ username }) => {
+const WelcomeUser = ({ nickname }) => {
   return (
     <View>
-      <Text style={styles.welcomeText}>Welcome Back {username}</Text>
+      <Text style={styles.welcomeText}>Welcome Back {nickname}</Text>
     </View>
   );
 };

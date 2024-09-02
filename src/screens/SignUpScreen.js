@@ -12,11 +12,14 @@ import {
   Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { apiCall } from "./utils/api";
 
-const LoginScreen = ({ navigation }) => {
+const SignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [csrfToken, setCsrfToken] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -25,48 +28,36 @@ const LoginScreen = ({ navigation }) => {
 
   const fetchCsrfToken = async () => {
     try {
-      const response = await fetch(
-        "http://192.168.2.50:8000/api/get-csrf-token/",
-        {
-          method: "GET",
-          credentials: "include",
-        }
+      const response = await apiCall(
+        "http://192.168.2.50:8000/api/get-csrf-token/"
       );
-      const data = await response.json();
-      setCsrfToken(data.csrfToken);
-      await AsyncStorage.setItem("csrfToken", data.csrfToken);
+      await AsyncStorage.setItem("csrfToken", response.csrfToken);
     } catch (error) {
       console.error("Error fetching CSRF token:", error);
     }
   };
 
-  const handleLogin = async () => {
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const url = "http://192.168.2.50:8000/api/users/login/";
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken,
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: "include",
-      });
+      const response = await apiCall(
+        "http://192.168.2.50:8000/api/users/",
+        "POST",
+        { username, email, password, nickname }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        await AsyncStorage.setItem("csrfToken", data.csrfToken);
-        await AsyncStorage.setItem("username", username);
-        await AsyncStorage.setItem("nickname", data.nickname || username);
-        navigation.navigate("Home", { username: username });
-      } else {
-        throw new Error(data?.error || "Login failed");
+      if (response) {
+        alert("Signup successful. Please log in.");
+        navigation.navigate("Login");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please try again.");
+      console.error("Signup error:", error);
+      alert("Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +72,7 @@ const LoginScreen = ({ navigation }) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.inner}>
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.title}>Create Account</Text>
             </View>
             <View style={styles.formContainer}>
               <View style={styles.inputWrapper}>
@@ -97,27 +88,56 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nickname"
+                  value={nickname}
+                  onChangeText={setNickname}
+                  autoCapitalize="words"
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
                   placeholder="Password"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
                 />
               </View>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                />
+              </View>
               <TouchableOpacity
                 style={styles.button}
-                onPress={handleLogin}
+                onPress={handleSignup}
                 disabled={isLoading}
               >
                 <Text style={styles.buttonText}>
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? "Signing up..." : "Sign Up"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() => navigation.navigate("Signup")}
+                onPress={() => navigation.navigate("Login")}
               >
                 <Text style={styles.linkButtonText}>
-                  Don't have an account? Sign up
+                  Already have an account? Log in
                 </Text>
               </TouchableOpacity>
             </View>
@@ -127,7 +147,6 @@ const LoginScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -194,4 +213,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default SignupScreen;
