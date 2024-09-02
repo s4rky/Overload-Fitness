@@ -1,32 +1,30 @@
 import React from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const WeekDays = () => {
-  // Get the current day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-  const today = new Date().getDay();
-
-  // Days of the week array
+const WeekDays = ({ selectedDay, onDayPress, areDaysClickable }) => {
   const days = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
     <View style={styles.container}>
       {days.map((day, index) => (
-        <View
+        <TouchableOpacity
           key={index}
           style={[
             styles.dayContainer,
-            index === today && styles.highlightedDayContainer,
+            index === selectedDay && styles.highlightedDayContainer,
           ]}
+          onPress={() => areDaysClickable && onDayPress(index)} // Handle day click based on areDaysClickable
+          disabled={!areDaysClickable} // Disable press if not clickable
         >
           <Text
             style={[
               styles.dayText,
-              index === today && styles.highlightedDayText,
+              index === selectedDay && styles.highlightedDayText,
             ]}
           >
             {day}
           </Text>
-        </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
@@ -35,8 +33,8 @@ const WeekDays = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    justifyContent: "space-between", // Spread out the days even more
-    marginHorizontal: 30, // Increase margin to spread the days more
+    justifyContent: "space-between",
+    marginHorizontal: 30,
   },
   dayContainer: {
     padding: 10,
@@ -46,7 +44,7 @@ const styles = StyleSheet.create({
   highlightedDayContainer: {
     backgroundColor: "#ffeb3b",
     borderRadius: 4,
-    paddingHorizontal: 10, // Adjust padding to make the highlight box more visible
+    paddingHorizontal: 10,
   },
   dayText: {
     fontSize: 18,
