@@ -7,6 +7,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -55,8 +58,8 @@ const LoginScreen = ({ navigation }) => {
 
       if (response.ok) {
         await AsyncStorage.setItem("csrfToken", data.csrfToken);
-        await AsyncStorage.setItem("username", username); // Store the username
-        navigation.navigate("Home", { username: username }); // Pass username to HomeScreen
+        await AsyncStorage.setItem("username", username);
+        navigation.navigate("Home", { username: username });
       } else {
         throw new Error(data?.error || "Login failed");
       }
@@ -73,32 +76,39 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={isLoading}
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Logging in..." : "Login"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>Welcome Back</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>
+                {isLoading ? "Logging in..." : "Login"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };
@@ -108,10 +118,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
-  formContainer: {
-    flex: 1,
+  scrollViewContent: {
+    flexGrow: 1,
     justifyContent: "center",
-    alignItems: "center",
+  },
+  formContainer: {
     padding: 20,
   },
   title: {
@@ -119,6 +130,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 30,
     color: "#333",
+    textAlign: "center",
   },
   input: {
     width: "100%",
