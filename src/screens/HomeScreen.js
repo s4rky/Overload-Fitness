@@ -28,6 +28,7 @@ const HomeScreen = ({ navigation }) => {
     right: 0,
   });
   const [username, setUsername] = useState("");
+  const [nickname, setNickname] = useState("");
 
   const formattedDate = today.toDateString();
   const days = [
@@ -41,6 +42,12 @@ const HomeScreen = ({ navigation }) => {
   ];
 
   useEffect(() => {
+    const fetchUserInfo = async () => {
+      const storedNickname = await AsyncStorage.getItem("nickname");
+      setNickname(storedNickname || "");
+    };
+    fetchUserInfo();
+
     const fetchUsername = async () => {
       const storedUsername = await AsyncStorage.getItem("username");
       setUsername(storedUsername || "");
@@ -137,7 +144,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <WelcomeUser username={username} />
+      <WelcomeUser nickname={nickname} />
       <Text style={styles.dateText}>{formattedDate}</Text>
       <WeekDays
         selectedDay={selectedDay}

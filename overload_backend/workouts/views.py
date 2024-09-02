@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
+from .models import UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -29,16 +30,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        logger.debug(f"User created via API: {serializer.instance.username}")
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
     @action(detail=False, methods=["post"])
     @method_decorator(ensure_csrf_cookie)
     def login(self, request):
@@ -50,10 +41,15 @@ class UserViewSet(viewsets.ModelViewSet):
         if user is not None:
             login(request, user)
             logger.debug(f"User {username} authenticated successfully")
+
+            # Get or create UserProfile
+            user_profile, created = UserProfile.objects.get_or_create(user=user)
+
             return Response(
                 {
                     "id": user.id,
                     "username": user.username,
+                    "nickname": user_profile.nickname or user.username,
                     "message": "Login successful",
                     "csrfToken": get_token(request),
                 }
@@ -62,31 +58,6 @@ class UserViewSet(viewsets.ModelViewSet):
             logger.warning(f"Authentication failed for user: {username}")
             return Response(
                 {"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-    @action(detail=False, methods=["post"])
-    def check_password(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
-        try:
-            user = User.objects.get(username=username)
-            is_correct = check_password(password, user.password)
-            logger.debug(
-                f"Password check for {username}: {'Correct' if is_correct else 'Incorrect'}"
-            )
-            logger.debug(f"Stored hash: {user.password[:20]}...")
-            return Response(
-                {
-                    "username": username,
-                    "password_correct": is_correct,
-                    "stored_hash": user.password[:20]
-                    + "...",  # Only show part of the hash for security
-                }
-            )
-        except User.DoesNotExist:
-            logger.warning(f"User {username} not found during password check")
-            return Response(
-                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
 

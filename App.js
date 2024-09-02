@@ -7,18 +7,20 @@ import CreateWorkoutScreen from "./src/screens/CreateWorkoutScreen";
 import { ThemeProvider } from "./src/screens/context/ThemeContext";
 import WorkoutSessionScreen from "./src/screens/WorkoutSessionScreen";
 import CustomSplitScreen from "./src/screens/CustomSplitScreen";
-import LoginScreen from "./src/screens/LoginScreen"; // Import the new LoginScreen
+import LoginScreen from "./src/screens/LoginScreen";
+import SignupScreen from "./src/screens/SignUpScreen";
 
 const navigator = createStackNavigator(
   {
-    Login: LoginScreen, // Add LoginScreen to the navigator
+    Login: LoginScreen,
+    Signup: SignupScreen, // Add SignupScreen to the navigator
     Home: HomeScreen,
     CreateWorkout: CreateWorkoutScreen,
     WorkoutSession: WorkoutSessionScreen,
     CustomSplit: CustomSplitScreen,
   },
   {
-    initialRouteName: "Login", // Set Login as the initial route
+    initialRouteName: "Login",
     defaultNavigationOptions: {
       title: "Overload",
     },
