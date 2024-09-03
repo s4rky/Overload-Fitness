@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,9 @@ import {
 } from "react-native";
 import ExerciseInput from "./components/ExerciseInput";
 import ExerciseDropdown from "./components/ExerciseDropdown";
+import { API_URL } from "./config";
+import { login, fetchCsrfToken } from "./utils/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DAYS = [
   { key: "sun", label: "S", fullName: "Sunday" },
@@ -28,22 +31,52 @@ const CreateWorkoutScreen = () => {
   const [dayName, setDayName] = useState("");
   const [isRestDay, setIsRestDay] = useState(false);
   const [exercises, setExercises] = useState([]);
+  const [csrfToken, setCsrfToken] = useState("");
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem("csrfToken");
+        console.log("Token from AsyncStorage:", token);
+        if (token) {
+          setCsrfToken(token);
+        } else {
+          const newToken = await fetchCsrfToken();
+          console.log("New token fetched:", newToken);
+          setCsrfToken(newToken);
+        }
+      } catch (error) {
+        console.error("Error fetching CSRF token:", error);
+      }
+    };
+
+    fetchToken();
+  }, []);
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
     setDayName(dayPlans[day.key]?.name || "");
     setIsRestDay(dayPlans[day.key]?.isRest || false);
     setExercises(dayPlans[day.key]?.exercises || []);
+    console.log(
+      `Day clicked: ${day.fullName}, Current plan:`,
+      dayPlans[day.key]
+    );
   };
 
   const handleAddExercise = () => {
     setExercises([...exercises, { exercise: "" }]);
+    console.log("Exercise added. Current exercises:", [
+      ...exercises,
+      { exercise: "" },
+    ]);
   };
 
   const handleSelectExercise = (index, exercise) => {
     const updatedExercises = [...exercises];
     updatedExercises[index] = { exercise };
     setExercises(updatedExercises);
+    console.log(`Exercise selected at index ${index}:`, exercise);
   };
 
   const handleDone = () => {
@@ -52,6 +85,7 @@ const CreateWorkoutScreen = () => {
         ? { name: "Rest", isRest: true }
         : { name: dayName, isRest: false, exercises };
       setDayPlans({ ...dayPlans, [selectedDay.key]: dayPlan });
+      console.log(`Day plan set for ${selectedDay.fullName}:`, dayPlan);
       setSelectedDay(null);
       setDayName("");
       setIsRestDay(false);
@@ -59,7 +93,7 @@ const CreateWorkoutScreen = () => {
     }
   };
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (Object.keys(dayPlans).length !== DAYS.length) {
       Alert.alert(
         "Incomplete Plan",
@@ -68,15 +102,40 @@ const CreateWorkoutScreen = () => {
       return;
     }
 
-    // Here you would typically save the plan to a backend or local storage
-    // For this example, we'll just show an alert
-    Alert.alert(
-      "Plan Saved",
-      "Your workout plan has been saved successfully!",
-      [{ text: "OK" }]
-    );
+    console.log("Attempting to save workout plan:", dayPlans);
 
-    console.log("Saved plan:", dayPlans);
+    try {
+      const response = await fetch(`${API_URL}/workout-plans/save_plan/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        credentials: "include",
+        body: JSON.stringify(dayPlans),
+      });
+
+      console.log("Save plan response status:", response.status);
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log("Save plan response data:", responseData);
+        Alert.alert(
+          "Plan Saved",
+          "Your workout plan has been saved successfully!",
+          [{ text: "OK" }]
+        );
+      } else {
+        const errorData = await response.json();
+        console.error("Save plan error response:", errorData);
+        throw new Error(
+          `Server error: ${errorData.error || response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error("Detailed error:", error);
+      Alert.alert("Error", `Failed to save workout plan: ${error.message}`);
+    }
   };
 
   const renderDayButton = (day) => {
