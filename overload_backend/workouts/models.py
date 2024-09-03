@@ -11,6 +11,20 @@ class Workout(models.Model):
         return f"{self.name} - {self.user.username}"
 
 
+class WorkoutPlan(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    day = models.CharField(max_length=3)  # 'sun', 'mon', etc.
+    name = models.CharField(max_length=100)
+    is_rest = models.BooleanField(default=False)
+    exercises = models.JSONField(default=list)
+
+    class Meta:
+        unique_together = ("user", "day")
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.day} plan: {self.name}"
+
+
 class Exercise(models.Model):
     workout = models.ForeignKey(
         Workout, related_name="exercises", on_delete=models.CASCADE

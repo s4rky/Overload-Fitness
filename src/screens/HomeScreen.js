@@ -15,6 +15,7 @@ import ProgressGraph from "./components/ProgressGraph";
 import WelcomeUser from "./WelcomeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout } from "./utils/auth";
+import { API_URL } from "./config";
 
 const { width } = Dimensions.get("window");
 
@@ -30,16 +31,17 @@ const HomeScreen = ({ navigation }) => {
   });
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
+  const [workoutPlan, setWorkoutPlan] = useState({});
 
   const formattedDate = today.toDateString();
   const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
+    "sunday",
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
   ];
 
   const handleLogout = async () => {
@@ -72,10 +74,37 @@ const HomeScreen = ({ navigation }) => {
         setShowSplitModal(true);
       },
     });
+
+    fetchWorkoutPlan();
   }, []);
 
   const handleOverloadPress = () => {
     navigation.navigate("WorkoutSession");
+  };
+
+  const fetchWorkoutPlan = async () => {
+    try {
+      const response = await fetch(`${API_URL}/workout-plans/`, {
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched workout plan:", data);
+
+        const planObject = data.reduce((acc, plan) => {
+          acc[plan.day.toLowerCase()] = plan; // Convert day to lowercase
+          return acc;
+        }, {});
+
+        setWorkoutPlan(planObject);
+        console.log("Processed workout plan:", planObject);
+      } else {
+        throw new Error("Failed to fetch workout plan");
+      }
+    } catch (error) {
+      console.error("Error fetching workout plan:", error);
+    }
   };
 
   const handleWorkPress = () => {
@@ -96,6 +125,7 @@ const HomeScreen = ({ navigation }) => {
   const handleDayPress = (dayIndex) => {
     if (areDaysClickable) {
       setSelectedDay(dayIndex);
+      setShowWorkout(true);
     }
   };
 
@@ -110,36 +140,35 @@ const HomeScreen = ({ navigation }) => {
 
   const renderWorkoutInfo = () => {
     const isToday = selectedDay === today.getDay();
+    const dayName = days[selectedDay];
     const workoutHeader = isToday
       ? "Workout for Today"
-      : `Workout for ${days[selectedDay]}`;
+      : `Workout for ${dayName.charAt(0).toUpperCase() + dayName.slice(1)}`;
+
+    const dayPlan = workoutPlan[dayName.toLowerCase()] || {}; // Ensure correct case
+
+    console.log("Rendering workout info for day:", dayName, "Plan:", dayPlan);
 
     return (
       <View style={styles.workoutContainer}>
-        {showWorkout && (
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
 
         <Text style={styles.workoutHeader}>{workoutHeader}</Text>
-        <Text style={styles.workoutText}>
-          Sample Workout {String.fromCharCode(65 + selectedDay)}
-        </Text>
-
-        <Text style={styles.goalHeader}>Goal:</Text>
-        <Text style={styles.workoutText}>
-          Sample Goal: Improve{" "}
-          {selectedDay % 2 === 0 ? "strength" : "endurance"}
-        </Text>
-
-        <Text style={styles.emphasisHeader}>Emphasis on:</Text>
-        <Text style={styles.workoutText}>
-          Sample Emphasis:{" "}
-          {selectedDay % 2 === 0
-            ? "Proper form and technique"
-            : "Cardiovascular fitness"}
-        </Text>
+        {dayPlan.is_rest ? (
+          <Text style={styles.workoutText}>Rest Day</Text>
+        ) : (
+          <>
+            <Text style={styles.workoutText}>{dayPlan.name}</Text>
+            {dayPlan.exercises &&
+              dayPlan.exercises.map((exercise, index) => (
+                <Text key={index} style={styles.workoutText}>
+                  {exercise.exercise}
+                </Text>
+              ))}
+          </>
+        )}
 
         {isToday && (
           <TouchableOpacity
@@ -162,7 +191,9 @@ const HomeScreen = ({ navigation }) => {
         onDayPress={handleDayPress}
         areDaysClickable={areDaysClickable}
       />
-      {!showWorkout && selectedDay === today.getDay() ? (
+      {showWorkout ? (
+        renderWorkoutInfo()
+      ) : (
         <>
           <ProgressGraph />
           <View style={styles.buttonContainer}>
@@ -170,8 +201,6 @@ const HomeScreen = ({ navigation }) => {
             <Button title="Skip/Reason Why" onPress={handleSkipPress} />
           </View>
         </>
-      ) : (
-        renderWorkoutInfo()
       )}
 
       <Modal

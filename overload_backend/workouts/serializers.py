@@ -1,9 +1,15 @@
 import logging
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Workout, Exercise, UserProfile
+from .models import Workout, Exercise, UserProfile, WorkoutPlan
 
 logger = logging.getLogger(__name__)
+
+
+class WorkoutPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkoutPlan
+        fields = ["id", "day", "name", "is_rest", "exercises"]
 
 
 class UserSerializer(serializers.ModelSerializer):

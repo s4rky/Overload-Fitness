@@ -13,6 +13,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from .models import UserProfile
+from .models import WorkoutPlan
+from .serializers import WorkoutPlanSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +88,33 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Exercise.objects.filter(workout__user=self.request.user)
+
+
+class WorkoutPlanViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkoutPlanSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return WorkoutPlan.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["post"])
+    def save_plan(self, request):
+        try:
+            plans = request.data
+            for day, plan in plans.items():
+                WorkoutPlan.objects.update_or_create(
+                    user=request.user,
+                    day=day,
+                    defaults={
+                        "name": plan["name"],
+                        "is_rest": plan["isRest"],
+                        "exercises": plan.get("exercises", []),
+                    },
+                )
+            return Response({"message": "Workout plan saved successfully"})
+        except Exception as e:
+            logger.error(f"Error saving workout plan: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
