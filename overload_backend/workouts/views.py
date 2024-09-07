@@ -5,14 +5,22 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth.models import User
-from .models import Workout, Exercise
-from .serializers import UserSerializer, WorkoutSerializer, ExerciseSerializer
+from .models import Workout, Exercise, WeekPlan
+from .serializers import (
+    UserSerializer,
+    WorkoutSerializer,
+    ExerciseSerializer,
+    WeekPlanSerializer,
+)
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from .models import UserProfile
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +94,27 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Exercise.objects.filter(workout__user=self.request.user)
+
+
+class WeekPlanViewSet(viewsets.ModelViewSet):
+    queryset = WeekPlan.objects.all()
+    serializer_class = WeekPlanSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return WeekPlan.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=["GET"])
+    def latest(self, request):
+        latest_plan = self.get_queryset().order_by("-created_at").first()
+        if latest_plan:
+            serializer = self.get_serializer(latest_plan)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"detail": "No week plan found"}, status=status.HTTP_404_NOT_FOUND
+            )

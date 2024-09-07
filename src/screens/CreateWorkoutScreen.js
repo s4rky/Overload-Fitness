@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import ExerciseInput from "./components/ExerciseInput";
 import ExerciseDropdown from "./components/ExerciseDropdown";
+import axios from "axios"; // Make sure to install axios if you haven't already
+import { saveWeekPlan } from "./utils/auth";
 
 const DAYS = [
   { key: "sun", label: "S", fullName: "Sunday" },
@@ -59,7 +61,7 @@ const CreateWorkoutScreen = () => {
     }
   };
 
-  const handleSavePlan = () => {
+  const handleSavePlan = async () => {
     if (Object.keys(dayPlans).length !== DAYS.length) {
       Alert.alert(
         "Incomplete Plan",
@@ -68,15 +70,21 @@ const CreateWorkoutScreen = () => {
       return;
     }
 
-    // Here you would typically save the plan to a backend or local storage
-    // For this example, we'll just show an alert
-    Alert.alert(
-      "Plan Saved",
-      "Your workout plan has been saved successfully!",
-      [{ text: "OK" }]
-    );
-
-    console.log("Saved plan:", dayPlans);
+    try {
+      await saveWeekPlan(dayPlans);
+      Alert.alert(
+        "Plan Saved",
+        "Your workout plan has been saved successfully!",
+        [{ text: "OK" }]
+      );
+      console.log("Saved plan:", dayPlans);
+    } catch (error) {
+      console.error("Error saving plan:", error);
+      Alert.alert(
+        "Error",
+        "There was an error saving your plan. Please try again."
+      );
+    }
   };
 
   const renderDayButton = (day) => {

@@ -14,7 +14,8 @@ import WeekDays from "./components/WeekDays";
 import ProgressGraph from "./components/ProgressGraph";
 import WelcomeUser from "./WelcomeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { logout } from "./utils/auth";
+import { logout, fetchLatestWeekPlan } from "./utils/auth";
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +31,7 @@ const HomeScreen = ({ navigation }) => {
   });
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
+  const [weekPlan, setWeekPlan] = useState(null);
 
   const formattedDate = today.toDateString();
   const days = [
@@ -72,6 +74,18 @@ const HomeScreen = ({ navigation }) => {
         setShowSplitModal(true);
       },
     });
+    const fetchWeekPlan = async () => {
+      try {
+        const latestPlan = await fetchLatestWeekPlan();
+        if (latestPlan && latestPlan.data) {
+          setWeekPlan(latestPlan.data);
+        }
+      } catch (error) {
+        console.error("Error fetching week plan:", error);
+      }
+    };
+
+    fetchWeekPlan();
   }, []);
 
   const handleOverloadPress = () => {
@@ -82,6 +96,7 @@ const HomeScreen = ({ navigation }) => {
     setShowWorkout(true);
     setAreDaysClickable(false);
     setSelectedDay(today.getDay());
+    console.log("Work pressed, selected day set to:", today.getDay());
   };
 
   const handleBackPress = () => {
@@ -109,10 +124,23 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const renderWorkoutInfo = () => {
-    const isToday = selectedDay === today.getDay();
-    const workoutHeader = isToday
-      ? "Workout for Today"
-      : `Workout for ${days[selectedDay]}`;
+    if (!weekPlan) {
+      console.log("No week plan available");
+      return <Text style={styles.workoutText}>No workout plan available</Text>;
+    }
+
+    const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
+    const dayPlan = weekPlan[dayKey];
+
+    console.log("Selected day:", dayKey);
+    console.log("Day plan:", dayPlan);
+    console.log("Is today:", selectedDay === today.getDay());
+
+    if (!dayPlan) {
+      return (
+        <Text style={styles.workoutText}>No workout plan for this day</Text>
+      );
+    }
 
     return (
       <View style={styles.workoutContainer}>
@@ -122,26 +150,30 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         )}
 
-        <Text style={styles.workoutHeader}>{workoutHeader}</Text>
-        <Text style={styles.workoutText}>
-          Sample Workout {String.fromCharCode(65 + selectedDay)}
+        <Text style={styles.workoutHeader}>
+          Workout for {days[selectedDay]}
         </Text>
 
-        <Text style={styles.goalHeader}>Goal:</Text>
         <Text style={styles.workoutText}>
-          Sample Goal: Improve{" "}
-          {selectedDay % 2 === 0 ? "strength" : "endurance"}
+          {dayPlan.isRest ? "Rest Day" : dayPlan.name}
         </Text>
 
-        <Text style={styles.emphasisHeader}>Emphasis on:</Text>
-        <Text style={styles.workoutText}>
-          Sample Emphasis:{" "}
-          {selectedDay % 2 === 0
-            ? "Proper form and technique"
-            : "Cardiovascular fitness"}
-        </Text>
+        {!dayPlan.isRest && dayPlan.exercises && (
+          <>
+            <Text style={styles.exercisesHeader}>Exercises:</Text>
+            {dayPlan.exercises.map((exercise, index) => (
+              <Text key={index} style={styles.exerciseText}>
+                - {exercise.exercise}
+              </Text>
+            ))}
+          </>
+        )}
 
-        {isToday && (
+        {console.log(
+          "Should show OVERLOAD button:",
+          selectedDay === today.getDay() && !dayPlan.isRest
+        )}
+        {selectedDay === today.getDay() && (
           <TouchableOpacity
             style={styles.overloadButton}
             onPress={handleOverloadPress}
@@ -334,6 +366,16 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  exercisesHeader: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  exerciseText: {
+    fontSize: 16,
+    marginLeft: 10,
   },
 });
 

@@ -54,3 +54,43 @@ export const logout = async () => {
   await AsyncStorage.removeItem("username");
   await AsyncStorage.removeItem("nickname");
 };
+
+export const saveWeekPlan = async (planData) => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    body: JSON.stringify({ data: planData }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to save week plan");
+  }
+
+  return response.json();
+};
+
+export const fetchLatestWeekPlan = async () => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/latest/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null; // No week plan found
+    }
+    throw new Error("Failed to fetch latest week plan");
+  }
+
+  return response.json();
+};

@@ -1,7 +1,7 @@
 import logging
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Workout, Exercise, UserProfile
+from .models import Workout, Exercise, UserProfile, WeekPlan
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +56,10 @@ class ExerciseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Exercise
         fields = ["id", "workout", "name", "sets", "reps", "weight"]
+
+
+class WeekPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WeekPlan
+        fields = ["id", "user", "data", "created_at"]
+        read_only_fields = ["user", "created_at"]

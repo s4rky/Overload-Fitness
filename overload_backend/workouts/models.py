@@ -21,7 +21,7 @@ class Exercise(models.Model):
     weight = models.FloatField()
 
     def __str__(self):
-        return f"{self.name} - {self.sets}x{self.reps} at {self.weight}kg"
+        return f"{self.name} - {self.sets}x{self.reps} at {self.weight}lbs"
 
 
 class UserProfile(models.Model):
@@ -30,3 +30,15 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class WeekPlan(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    data = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Week Plan for {self.user.username} - {self.created_at}"
