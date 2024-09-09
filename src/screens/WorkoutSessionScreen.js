@@ -10,6 +10,8 @@ import {
   Dimensions,
   FlatList,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -101,8 +103,16 @@ const WorkoutSessionScreen = () => {
     }
   };
 
-  const SetButton = ({ title, onPress, style, textStyle }) => (
+  const SetButton = ({ title, onPress, style, textStyle, icon }) => (
     <TouchableOpacity style={[styles.setButton, style]} onPress={onPress}>
+      {icon && (
+        <Ionicons
+          name={icon}
+          size={18}
+          color="#fff"
+          style={styles.buttonIcon}
+        />
+      )}
       <Text
         style={[styles.setButtonText, textStyle]}
         numberOfLines={1}
@@ -124,31 +134,32 @@ const WorkoutSessionScreen = () => {
         {!set.skipped ? (
           <>
             <SetButton
-              title="📷 Begin"
+              title="Begin"
+              icon="camera-outline"
               onPress={() => handleBeginSet(exerciseIndex, setIndex)}
               style={styles.primarySetButton}
             />
             <SetButton
               title="Continue"
+              icon="play-outline"
               onPress={() =>
                 handleContinueWithoutRecording(exerciseIndex, setIndex)
               }
               style={styles.secondarySetButton}
-              textStyle={styles.secondaryButtonText}
             />
             <SetButton
               title="Skip"
+              icon="close-outline"
               onPress={() => handleSetSkipToggle(exerciseIndex, setIndex)}
               style={styles.skipButton}
-              textStyle={styles.skipButtonText}
             />
           </>
         ) : (
           <SetButton
             title="Unskip"
+            icon="refresh-outline"
             onPress={() => handleSetSkipToggle(exerciseIndex, setIndex)}
             style={styles.unskipButton}
-            textStyle={styles.unskipButtonText}
           />
         )}
       </View>
@@ -166,7 +177,7 @@ const WorkoutSessionScreen = () => {
         >
           {item.skipped && (
             <View style={styles.skippedOverlay}>
-              <Text style={styles.skippedText}>❌</Text>
+              <Ionicons name="close-circle" size={24} color="#FF5252" />
             </View>
           )}
           <Text style={styles.exerciseTitle}>
@@ -199,9 +210,9 @@ const WorkoutSessionScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.container}>
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" />
         <View style={styles.mainContent}>
           <View style={styles.header}>
             <Text style={styles.headerText}>Workout Session</Text>
@@ -234,9 +245,11 @@ const WorkoutSessionScreen = () => {
           ]}
           onPress={toggleTableOfContents}
         >
-          <Text style={styles.tocButtonText}>
-            {isTableOfContentsOpen ? ">" : "<"}
-          </Text>
+          <Ionicons
+            name={isTableOfContentsOpen ? "chevron-forward" : "chevron-back"}
+            size={24}
+            color="#fff"
+          />
         </TouchableOpacity>
 
         {isTableOfContentsOpen && (
@@ -260,20 +273,20 @@ const WorkoutSessionScreen = () => {
             ))}
           </ScrollView>
         )}
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f5f5f5" },
-  container: { flex: 1, flexDirection: "row" },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
   mainContent: { flex: 1 },
   header: { marginBottom: 20, paddingHorizontal: 20, paddingTop: 20 },
   headerText: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#333",
+    color: "#fff",
     alignSelf: "center",
   },
   flatListContainer: { justifyContent: "center" },
@@ -284,32 +297,27 @@ const styles = StyleSheet.create({
   },
   exerciseContentWrapper: { width: "100%" },
   exerciseContent: {
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 10,
     padding: 20,
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 2,
   },
   exerciseTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
+    color: "#fff",
     marginBottom: 15,
   },
   setsScrollView: { maxHeight: 400 },
   setItem: {
     marginBottom: 20,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 10,
     padding: 15,
     position: "relative",
   },
-  setText: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 5 },
-  setInfo: { fontSize: 16, color: "#666", marginBottom: 5 },
+  setText: { fontSize: 18, fontWeight: "bold", color: "#fff", marginBottom: 5 },
+  setInfo: { fontSize: 16, color: "#bbb", marginBottom: 5 },
   setButtons: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -317,11 +325,15 @@ const styles = StyleSheet.create({
   },
   setButton: {
     flex: 1,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     padding: 10,
     borderRadius: 8,
     marginHorizontal: 2,
+  },
+  buttonIcon: {
+    marginRight: 5,
   },
   setButtonText: {
     color: "#fff",
@@ -331,52 +343,43 @@ const styles = StyleSheet.create({
   },
   primarySetButton: { backgroundColor: "#4CAF50" },
   secondarySetButton: { backgroundColor: "#FF9800" },
-  secondaryButtonText: { color: "#fff" },
-  skipButton: { backgroundColor: "#FF5722" },
-  skipButtonText: { color: "#fff" },
+  skipButton: { backgroundColor: "#FF5252" },
   unskipButton: { backgroundColor: "#4CAF50" },
-  unskipButtonText: { color: "#fff" },
   tocButton: {
     position: "absolute",
     right: 0,
     top: 40,
-    backgroundColor: "#007AFF",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     padding: 10,
     borderTopLeftRadius: 8,
     borderBottomLeftRadius: 8,
     zIndex: 1,
   },
   tocButtonOpen: { right: 250 },
-  tocButtonText: { color: "#fff", fontSize: 20 },
   tableOfContents: {
     position: "absolute",
     right: 0,
     top: 0,
     bottom: 0,
     width: 250,
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(26, 26, 46, 0.95)",
     padding: 20,
     paddingTop: 60,
-    shadowColor: "#000",
-    shadowOffset: { width: -2, height: 0 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
   },
   tocTitle: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "#333",
+    color: "#fff",
   },
   tocItemContainer: { paddingVertical: 10 },
-  tocItem: { fontSize: 18, color: "#666" },
+  tocItem: { fontSize: 18, color: "#bbb" },
   tocItemActive: { color: "#4CAF50", fontWeight: "bold" },
   skipExerciseButton: {
     marginTop: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FF5722",
+    backgroundColor: "#FF5252",
     padding: 15,
     borderRadius: 8,
     width: "100%",
@@ -394,7 +397,6 @@ const styles = StyleSheet.create({
   unskipExerciseButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   skippedExerciseContent: { opacity: 0.6 },
   skippedOverlay: { position: "absolute", top: 10, left: 10, zIndex: 1 },
-  skippedText: { fontSize: 24, color: "#FF5722" },
 });
 
 export default WorkoutSessionScreen;

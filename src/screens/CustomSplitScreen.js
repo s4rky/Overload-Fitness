@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import ExerciseInput from "./components/ExerciseInput";
 import ExerciseDropdown from "./components/ExerciseDropdown";
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const { width } = Dimensions.get("window");
 
@@ -108,98 +110,119 @@ const CustomSplitScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Enter number of days (3-14):</Text>
-        <TextInput
-          style={styles.numDaysInput}
-          value={numDays}
-          onChangeText={handleNumDaysChange}
-          keyboardType="numeric"
-          maxLength={2}
-        />
-        {numDays !== "" && !isValidNumDays && (
-          <Text style={styles.errorText}>
-            Please enter a valid number between 3 and 14
-          </Text>
-        )}
-      </View>
-      {isValidNumDays && (
-        <>
-          <View style={styles.content}>
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.daySelector}
-              showsVerticalScrollIndicator={false}
-            >
-              {[...Array(parseInt(numDays))].map((_, index) =>
-                renderDayButton(index + 1)
-              )}
-            </ScrollView>
-            <ScrollView style={styles.plannerPanel}>
-              {selectedDay ? (
-                <View style={styles.planContent}>
-                  <Text style={styles.panelTitle}>
-                    Plan for Day {selectedDay}
-                  </Text>
-                  <TextInput
-                    style={styles.dayNameInput}
-                    placeholder="Enter day name"
-                    value={dayName}
-                    onChangeText={setDayName}
-                  />
-                  <TouchableOpacity
-                    style={styles.restDayButton}
-                    onPress={() => setIsRestDay(!isRestDay)}
-                  >
-                    <Text style={styles.restDayButtonText}>
-                      {isRestDay ? "Set as Workout Day" : "Set as Rest Day"}
-                    </Text>
-                  </TouchableOpacity>
-                  {!isRestDay && (
-                    <>
-                      {exercises.map((_, index) => (
-                        <View key={index} style={styles.exerciseContainer}>
-                          <ExerciseDropdown
-                            placeholder="Select an exercise"
-                            onSelectExercise={(exercise) =>
-                              handleSelectExercise(index, exercise)
-                            }
-                          />
-                          <ExerciseInput />
-                        </View>
-                      ))}
-                      <TouchableOpacity
-                        style={styles.addButton}
-                        onPress={handleAddExercise}
-                      >
-                        <Text style={styles.addButtonText}>+ Add Exercise</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                  <TouchableOpacity
-                    style={styles.doneButton}
-                    onPress={handleDone}
-                  >
-                    <Text style={styles.doneButtonText}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <Text style={styles.instructionText}>
-                  Select a day to start planning
-                </Text>
-              )}
-            </ScrollView>
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Enter number of days (3-14):</Text>
+          <View style={styles.numDaysInputContainer}>
+            <Icon
+              name="calendar-outline"
+              size={20}
+              color="#4CAF50"
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.numDaysInput}
+              value={numDays}
+              onChangeText={handleNumDaysChange}
+              keyboardType="numeric"
+              maxLength={2}
+              placeholderTextColor="#666"
+            />
           </View>
-          <TouchableOpacity
-            style={styles.savePlanButton}
-            onPress={handleSavePlan}
-          >
-            <Text style={styles.savePlanButtonText}>Save Plan</Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </SafeAreaView>
+          {numDays !== "" && !isValidNumDays && (
+            <Text style={styles.errorText}>
+              Please enter a valid number between 3 and 14
+            </Text>
+          )}
+        </View>
+        {isValidNumDays && (
+          <>
+            <View style={styles.content}>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.daySelector}
+                showsVerticalScrollIndicator={false}
+              >
+                {[...Array(parseInt(numDays))].map((_, index) =>
+                  renderDayButton(index + 1)
+                )}
+              </ScrollView>
+              <ScrollView style={styles.plannerPanel}>
+                {selectedDay ? (
+                  <View style={styles.planContent}>
+                    <Text style={styles.panelTitle}>
+                      Plan for Day {selectedDay}
+                    </Text>
+                    <View style={styles.dayNameInputContainer}>
+                      <Icon
+                        name="create-outline"
+                        size={20}
+                        color="#4CAF50"
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={styles.dayNameInput}
+                        placeholder="Enter day name"
+                        placeholderTextColor="#666"
+                        value={dayName}
+                        onChangeText={setDayName}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      style={styles.restDayButton}
+                      onPress={() => setIsRestDay(!isRestDay)}
+                    >
+                      <Text style={styles.restDayButtonText}>
+                        {isRestDay ? "Set as Workout Day" : "Set as Rest Day"}
+                      </Text>
+                    </TouchableOpacity>
+                    {!isRestDay && (
+                      <>
+                        {exercises.map((_, index) => (
+                          <View key={index} style={styles.exerciseContainer}>
+                            <ExerciseDropdown
+                              placeholder="Select an exercise"
+                              onSelectExercise={(exercise) =>
+                                handleSelectExercise(index, exercise)
+                              }
+                            />
+                            <ExerciseInput />
+                          </View>
+                        ))}
+                        <TouchableOpacity
+                          style={styles.addButton}
+                          onPress={handleAddExercise}
+                        >
+                          <Icon name="add-outline" size={24} color="#fff" />
+                          <Text style={styles.addButtonText}>Add Exercise</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                    <TouchableOpacity
+                      style={styles.doneButton}
+                      onPress={handleDone}
+                    >
+                      <Text style={styles.doneButtonText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <Text style={styles.instructionText}>
+                    Select a day to start planning
+                  </Text>
+                )}
+              </ScrollView>
+            </View>
+            <TouchableOpacity
+              style={styles.savePlanButton}
+              onPress={handleSavePlan}
+            >
+              <Text style={styles.savePlanButtonText}>Save Plan</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
@@ -207,24 +230,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
   header: {
     padding: 20,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   headerText: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+    color: "#fff",
+  },
+  numDaysInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  inputIcon: {
+    padding: 10,
   },
   numDaysInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
+    flex: 1,
     padding: 10,
     fontSize: 16,
+    color: "#fff",
   },
   errorText: {
-    color: "red",
+    color: "#FF5252",
     marginTop: 5,
   },
   content: {
@@ -233,32 +270,33 @@ const styles = StyleSheet.create({
   },
   daySelector: {
     width: width / 3,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   dayButton: {
     height: 80,
     alignItems: "center",
     justifyContent: "center",
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "rgba(255, 255, 255, 0.1)",
     padding: 5,
   },
   selectedDayButton: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   dayButtonLabel: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 4,
+    color: "#fff",
   },
   dayButtonPlan: {
     fontSize: 12,
     textAlign: "center",
-    color: "#666",
+    color: "#bbb",
   },
   plannerPanel: {
     width: (width * 2) / 3,
-    backgroundColor: "#ffffff",
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
   },
   planContent: {
     padding: 20,
@@ -267,14 +305,22 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
+    color: "#fff",
+  },
+  dayNameInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   dayNameInput: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
+    flex: 1,
     padding: 15,
-    marginBottom: 15,
     fontSize: 16,
+    color: "#fff",
   },
   restDayButton: {
     backgroundColor: "#2196F3",
@@ -292,16 +338,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   addButton: {
+    flexDirection: "row",
     backgroundColor: "#4CAF50",
     padding: 15,
     borderRadius: 5,
     alignItems: "center",
+    justifyContent: "center",
     marginTop: 15,
   },
   addButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+    marginLeft: 10,
   },
   doneButton: {
     backgroundColor: "#FFC107",
@@ -319,7 +368,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
     marginTop: 50,
-    color: "#666",
+    color: "#bbb",
   },
   savePlanButton: {
     backgroundColor: "#FF5722",
