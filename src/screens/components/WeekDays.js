@@ -11,15 +11,17 @@ const WeekDays = ({ selectedDay, onDayPress, areDaysClickable }) => {
           key={index}
           style={[
             styles.dayContainer,
-            index === selectedDay && styles.highlightedDayContainer,
+            index === selectedDay && styles.selectedDayContainer,
+            !areDaysClickable && styles.disabledDayContainer,
           ]}
-          onPress={() => areDaysClickable && onDayPress(index)} // Handle day click based on areDaysClickable
-          disabled={!areDaysClickable} // Disable press if not clickable
+          onPress={() => areDaysClickable && onDayPress(index)}
+          disabled={!areDaysClickable}
         >
           <Text
             style={[
               styles.dayText,
-              index === selectedDay && styles.highlightedDayText,
+              index === selectedDay && styles.selectedDayText,
+              !areDaysClickable && styles.disabledDayText,
             ]}
           >
             {day}
@@ -34,24 +36,35 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginHorizontal: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 15,
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 20,
   },
   dayContainer: {
-    padding: 10,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 20,
   },
-  highlightedDayContainer: {
-    backgroundColor: "#ffeb3b",
-    borderRadius: 4,
-    paddingHorizontal: 10,
+  selectedDayContainer: {
+    backgroundColor: "#2196F3",
+  },
+  disabledDayContainer: {
+    opacity: 0.5,
   },
   dayText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
+    color: "#fff",
   },
-  highlightedDayText: {
-    color: "white",
+  selectedDayText: {
+    color: "#fff",
+  },
+  disabledDayText: {
+    color: "rgba(255, 255, 255, 0.5)",
   },
 });
 

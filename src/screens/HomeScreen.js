@@ -3,11 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Button,
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
   Dimensions,
+  ScrollView,
+  Animated,
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import WeekDays from "./components/WeekDays";
@@ -15,7 +16,8 @@ import ProgressGraph from "./components/ProgressGraph";
 import WelcomeUser from "./WelcomeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logout, fetchLatestWeekPlan } from "./utils/auth";
-import axios from "axios";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -32,6 +34,7 @@ const HomeScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
   const [weekPlan, setWeekPlan] = useState(null);
+  const fadeAnim = useState(new Animated.Value(0))[0];
 
   const formattedDate = today.toDateString();
   const days = [
@@ -86,6 +89,12 @@ const HomeScreen = ({ navigation }) => {
     };
 
     fetchWeekPlan();
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const handleOverloadPress = () => {
@@ -125,16 +134,11 @@ const HomeScreen = ({ navigation }) => {
 
   const renderWorkoutInfo = () => {
     if (!weekPlan) {
-      console.log("No week plan available");
       return <Text style={styles.workoutText}>No workout plan available</Text>;
     }
 
     const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
     const dayPlan = weekPlan[dayKey];
-
-    console.log("Selected day:", dayKey);
-    console.log("Day plan:", dayPlan);
-    console.log("Is today:", selectedDay === today.getDay());
 
     if (!dayPlan) {
       return (
@@ -143,10 +147,10 @@ const HomeScreen = ({ navigation }) => {
     }
 
     return (
-      <View style={styles.workoutContainer}>
+      <Animated.View style={[styles.workoutContainer, { opacity: fadeAnim }]}>
         {showWorkout && (
           <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Back</Text>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
         )}
 
@@ -163,48 +167,61 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.exercisesHeader}>Exercises:</Text>
             {dayPlan.exercises.map((exercise, index) => (
               <Text key={index} style={styles.exerciseText}>
-                - {exercise.exercise}
+                • {exercise.exercise}
               </Text>
             ))}
           </>
         )}
 
-        {console.log(
-          "Should show OVERLOAD button:",
-          selectedDay === today.getDay() && !dayPlan.isRest
-        )}
         {selectedDay === today.getDay() && (
           <TouchableOpacity
             style={styles.overloadButton}
             onPress={handleOverloadPress}
           >
-            <Text style={styles.overloadButtonText}>OVERLOAD</Text>
+            <LinearGradient
+              colors={["#4CAF50", "#45a049"]}
+              style={styles.overloadButtonGradient}
+            >
+              <Text style={styles.overloadButtonText}>OVERLOAD</Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
-      </View>
+      </Animated.View>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <WelcomeUser nickname={nickname} />
-      <Text style={styles.dateText}>{formattedDate}</Text>
-      <WeekDays
-        selectedDay={selectedDay}
-        onDayPress={handleDayPress}
-        areDaysClickable={areDaysClickable}
-      />
-      {!showWorkout && selectedDay === today.getDay() ? (
-        <>
-          <ProgressGraph />
-          <View style={styles.buttonContainer}>
-            <Button title="Time to Work" onPress={handleWorkPress} />
-            <Button title="Skip/Reason Why" onPress={handleSkipPress} />
-          </View>
-        </>
-      ) : (
-        renderWorkoutInfo()
-      )}
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <WelcomeUser nickname={nickname} />
+        <Text style={styles.dateText}>{formattedDate}</Text>
+        <WeekDays
+          selectedDay={selectedDay}
+          onDayPress={handleDayPress}
+          areDaysClickable={areDaysClickable}
+        />
+        {!showWorkout && selectedDay === today.getDay() ? (
+          <>
+            <ProgressGraph />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleWorkPress}
+              >
+                <Text style={styles.actionButtonText}>Time to Work</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.skipButton]}
+                onPress={handleSkipPress}
+              >
+                <Text style={styles.actionButtonText}>Skip/Reason Why</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          renderWorkoutInfo()
+        )}
+      </ScrollView>
 
       <Modal
         animationType="fade"
@@ -242,9 +259,14 @@ const HomeScreen = ({ navigation }) => {
       </Modal>
 
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
+        <LinearGradient
+          colors={["#007AFF", "#0056b3"]}
+          style={styles.logoutButtonGradient}
+        >
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -253,7 +275,12 @@ HomeScreen.navigationOptions = ({ navigation }) => ({
     <TouchableOpacity
       onPress={(event) => navigation.getParam("openSplitModal")(event)}
     >
-      <Text style={styles.plusButton}>+</Text>
+      <Ionicons
+        name="add"
+        size={30}
+        color="#007AFF"
+        style={styles.plusButton}
+      />
     </TouchableOpacity>
   ),
 });
@@ -261,56 +288,58 @@ HomeScreen.navigationOptions = ({ navigation }) => ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
-    paddingHorizontal: 10,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
   },
   dateText: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 20,
+    color: "#fff",
+    textAlign: "center",
   },
   buttonContainer: {
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 30,
   },
   workoutContainer: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 15,
     padding: 20,
+    marginTop: 20,
   },
   workoutHeader: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-  goalHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
-  },
-  emphasisHeader: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 20,
+    marginBottom: 15,
+    color: "#fff",
   },
   workoutText: {
     fontSize: 18,
     marginTop: 10,
+    color: "#ddd",
   },
   overloadButton: {
     marginTop: 30,
-    alignItems: "center",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  overloadButtonGradient: {
     paddingVertical: 15,
-    backgroundColor: "#4CAF50",
-    borderRadius: 5,
+    alignItems: "center",
   },
   overloadButtonText: {
     fontSize: 18,
     color: "#fff",
+    fontWeight: "bold",
   },
   plusButton: {
-    fontSize: 30,
-    color: "#007AFF",
     paddingRight: 15,
     paddingLeft: 15,
     paddingVertical: 5,
@@ -318,18 +347,14 @@ const styles = StyleSheet.create({
   backButton: {
     marginBottom: 20,
   },
-  backButtonText: {
-    fontSize: 18,
-    color: "#007AFF",
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalView: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: "#1a1a2e",
+    borderRadius: 15,
+    padding: 15,
     alignItems: "stretch",
     shadowColor: "#000",
     shadowOffset: {
@@ -339,43 +364,64 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    width: 150,
+    width: 170,
   },
   modalOption: {
-    backgroundColor: "#2196F3",
-    borderRadius: 5,
-    padding: 10,
-    elevation: 2,
-    marginBottom: 5,
+    backgroundColor: "#007AFF",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
   },
   modalOptionText: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+    fontSize: 16,
   },
   logoutButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 15,
-    alignItems: "center",
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
   },
+  logoutButtonGradient: {
+    paddingVertical: 18,
+    alignItems: "center",
+  },
   logoutButtonText: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 18,
   },
   exercisesHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 5,
+    marginTop: 15,
+    marginBottom: 10,
+    color: "#fff",
   },
   exerciseText: {
     fontSize: 16,
     marginLeft: 10,
+    color: "#ddd",
+    marginBottom: 5,
+  },
+  actionButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    marginBottom: 15,
+    width: "100%",
+  },
+  skipButton: {
+    backgroundColor: "#FF3B30",
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

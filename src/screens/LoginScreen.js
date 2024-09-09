@@ -10,9 +10,12 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { login, fetchCsrfToken } from "./utils/auth";
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
@@ -42,65 +45,90 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.inner}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Welcome Back</Text>
-            </View>
-            <View style={styles.formContainer}>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Username"
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoidingView}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.inner}>
+              <View style={styles.titleContainer}>
+                <Text style={styles.title}>Welcome Back</Text>
+                <Text style={styles.subtitle}>Log in to continue</Text>
               </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
+              <View style={styles.formContainer}>
+                <View style={styles.inputWrapper}>
+                  <Icon
+                    name="person-outline"
+                    size={20}
+                    color="#4CAF50"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    placeholderTextColor="#666"
+                    value={username}
+                    onChangeText={setUsername}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Icon
+                    name="lock-closed-outline"
+                    size={20}
+                    color="#4CAF50"
+                    style={styles.inputIcon}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="#666"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleLogin}
+                  disabled={isLoading}
+                >
+                  <LinearGradient
+                    colors={["#4CAF50", "#45a049"]}
+                    style={styles.buttonGradient}
+                  >
+                    <Text style={styles.buttonText}>
+                      {isLoading ? "Logging in..." : "Login"}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={() => navigation.navigate("Signup")}
+                >
+                  <Text style={styles.linkButtonText}>
+                    Don't have an account? Sign up
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleLogin}
-                disabled={isLoading}
-              >
-                <Text style={styles.buttonText}>
-                  {isLoading ? "Logging in..." : "Login"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => navigation.navigate("Signup")}
-              >
-                <Text style={styles.linkButtonText}>
-                  Don't have an account? Sign up
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -114,39 +142,45 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
+    color: "#fff",
     textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 10,
   },
   formContainer: {
     width: "100%",
   },
   inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 10,
     marginBottom: 20,
   },
+  inputIcon: {
+    padding: 10,
+  },
   input: {
+    flex: 1,
     height: 50,
-    backgroundColor: "white",
-    borderRadius: 10,
+    color: "#fff",
     paddingHorizontal: 15,
     fontSize: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   button: {
-    height: 50,
-    backgroundColor: "#007AFF",
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    overflow: "hidden",
     marginTop: 10,
+  },
+  buttonGradient: {
+    paddingVertical: 15,
+    alignItems: "center",
   },
   buttonText: {
     color: "white",
@@ -158,7 +192,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   linkButtonText: {
-    color: "#007AFF",
+    color: "#4CAF50",
     fontSize: 16,
   },
 });

@@ -10,9 +10,13 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiCall } from "./utils/api";
+import { LinearGradient } from "expo-linear-gradient";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const SignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
@@ -64,139 +68,198 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.inner}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>Create Account</Text>
-            </View>
-            <View style={styles.formContainer}>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Username"
-                  value={username}
-                  onChangeText={setUsername}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardAvoidingView}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView contentContainerStyle={styles.scrollViewContent}>
+              <View style={styles.inner}>
+                <View style={styles.titleContainer}>
+                  <Text style={styles.title}>Create Account</Text>
+                  <Text style={styles.subtitle}>
+                    Join us and start your fitness journey
+                  </Text>
+                </View>
+                <View style={styles.formContainer}>
+                  <View style={styles.inputWrapper}>
+                    <Icon
+                      name="person-outline"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Username"
+                      placeholderTextColor="#666"
+                      value={username}
+                      onChangeText={setUsername}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Icon
+                      name="mail-outline"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Email"
+                      placeholderTextColor="#666"
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      keyboardType="email-address"
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Icon
+                      name="happy-outline"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Nickname"
+                      placeholderTextColor="#666"
+                      value={nickname}
+                      onChangeText={setNickname}
+                      autoCapitalize="words"
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Icon
+                      name="lock-closed-outline"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Password"
+                      placeholderTextColor="#666"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                    />
+                  </View>
+                  <View style={styles.inputWrapper}>
+                    <Icon
+                      name="shield-checkmark-outline"
+                      size={20}
+                      color="#4CAF50"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Confirm Password"
+                      placeholderTextColor="#666"
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      secureTextEntry
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleSignup}
+                    disabled={isLoading}
+                  >
+                    <LinearGradient
+                      colors={["#4CAF50", "#45a049"]}
+                      style={styles.buttonGradient}
+                    >
+                      <Text style={styles.buttonText}>
+                        {isLoading ? "Signing up..." : "Sign Up"}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.linkButton}
+                    onPress={() => navigation.navigate("Login")}
+                  >
+                    <Text style={styles.linkButtonText}>
+                      Already have an account? Log in
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                />
-              </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Nickname"
-                  value={nickname}
-                  onChangeText={setNickname}
-                  autoCapitalize="words"
-                />
-              </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                />
-              </View>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={handleSignup}
-                disabled={isLoading}
-              >
-                <Text style={styles.buttonText}>
-                  {isLoading ? "Signing up..." : "Sign Up"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => navigation.navigate("Login")}
-              >
-                <Text style={styles.linkButtonText}>
-                  Already have an account? Log in
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
-  inner: {
-    flex: 1,
+  scrollViewContent: {
+    flexGrow: 1,
     justifyContent: "center",
+  },
+  inner: {
     padding: 20,
   },
   titleContainer: {
     marginBottom: 40,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
-    color: "#333",
+    color: "#fff",
     textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 10,
   },
   formContainer: {
     width: "100%",
   },
   inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 10,
     marginBottom: 20,
   },
+  inputIcon: {
+    padding: 10,
+  },
   input: {
+    flex: 1,
     height: 50,
-    backgroundColor: "white",
-    borderRadius: 10,
+    color: "#fff",
     paddingHorizontal: 15,
     fontSize: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   button: {
-    height: 50,
-    backgroundColor: "#007AFF",
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    overflow: "hidden",
     marginTop: 10,
+  },
+  buttonGradient: {
+    paddingVertical: 15,
+    alignItems: "center",
   },
   buttonText: {
     color: "white",
@@ -208,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   linkButtonText: {
-    color: "#007AFF",
+    color: "#4CAF50",
     fontSize: 16,
   },
 });
