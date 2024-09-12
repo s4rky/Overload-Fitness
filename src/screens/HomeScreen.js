@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   Animated,
+  LogBox,
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import WeekDays from "./components/WeekDays";
@@ -57,6 +58,10 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // LogBox.ignoreLogs([
+  //   "Non-serializable values were found in the navigation state",
+  // ]);
+
   useEffect(() => {
     const fetchUserInfo = async () => {
       const storedNickname = await AsyncStorage.getItem("nickname");
@@ -70,7 +75,7 @@ const HomeScreen = ({ navigation }) => {
     };
     fetchUsername();
 
-    navigation.setParams({
+    navigation.setOptions({
       openSplitModal: (event) => {
         const { pageY, pageX } = event.nativeEvent;
         setDropdownPosition({ top: pageY + 40, right: width - pageX });
@@ -257,15 +262,6 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <LinearGradient
-          colors={["#007AFF", "#0056b3"]}
-          style={styles.logoutButtonGradient}
-        >
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </LinearGradient>
-      </TouchableOpacity>
     </LinearGradient>
   );
 };

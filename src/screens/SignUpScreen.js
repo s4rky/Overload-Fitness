@@ -33,7 +33,7 @@ const SignupScreen = ({ navigation }) => {
   const fetchCsrfToken = async () => {
     try {
       const response = await apiCall(
-        "http://192.168.2.50:8000/api/get-csrf-token/"
+        "http://10.0.0.117:8000/api/get-csrf-token/"
       );
       await AsyncStorage.setItem("csrfToken", response.csrfToken);
     } catch (error) {

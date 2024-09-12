@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-6dgr0+=($w01r+x=2=mbkh3j!pbh^b+$5m#hm^ltk99&#vtzwy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.2.50"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.0.117"]
 
 # Application definition
 
@@ -163,7 +163,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:19006",  # Default Expo web debugging port
-    "http://192.168.2.50:19006",  # Your IP with Expo port
+    "http://10.0.0.117:19006",  # Your IP with Expo port
 ]
 
 CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
@@ -171,7 +171,7 @@ CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
-CSRF_TRUSTED_ORIGINS = ["http://localhost:19006", "http://192.168.2.50:19006"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:19006", "http://10.0.0.117:19006"]
 CSRF_COOKIE_NAME = "csrftoken"
 # CSRF_HEADER_NAME = "HTTP_X_CSRFTOKEN"
 
