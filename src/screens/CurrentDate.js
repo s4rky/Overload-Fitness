@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10, // Reduce padding to position the date further left
   },
   dateText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
   },
