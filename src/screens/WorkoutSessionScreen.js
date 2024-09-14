@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useWorkoutPlan } from "./components/WorkoutPlanContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -19,36 +20,40 @@ const WorkoutSessionScreen = () => {
   const [isTableOfContentsOpen, setIsTableOfContentsOpen] = useState(false);
   const [currentExercise, setCurrentExercise] = useState(0);
   const flatListRef = useRef(null);
+  const [exercises, setExercises] = useState([]);
+  const [dayName, setDayName] = useState("");
+  const { weekPlan } = useWorkoutPlan();
 
-  const [exercises, setExercises] = useState(
-    [
-      {
-        name: "Squats",
-        sets: [
-          { weight: 150, targetReps: 10 },
-          { weight: 160, targetReps: 8 },
-          { weight: 170, targetReps: 6 },
-        ],
-      },
-      {
-        name: "Bench Press",
-        sets: [
-          { weight: 120, targetReps: 8 },
-          { weight: 130, targetReps: 6 },
-          { weight: 140, targetReps: 4 },
-        ],
-      },
-    ].map((exercise) => ({
-      ...exercise,
-      skipped: false,
-      sets: exercise.sets.map((set) => ({
-        ...set,
-        completedReps: 0,
-        isCompleted: false,
+  useEffect(() => {
+    loadTodayWorkout();
+  }, [weekPlan]);
+
+  const loadTodayWorkout = () => {
+    const today = new Date()
+      .toLocaleString("en-us", { weekday: "short" })
+      .toLowerCase();
+    const todayPlan = weekPlan[today];
+
+    if (todayPlan && !todayPlan.isRest) {
+      setDayName(todayPlan.name);
+      const formattedExercises = todayPlan.exercises.map((exercise) => ({
+        name: exercise.exercise,
         skipped: false,
-      })),
-    }))
-  );
+        sets: exercise.sets.map((set) => ({
+          weight: set.weight,
+          targetReps: set.reps,
+          isWarmup: set.isWarmup,
+          completedReps: 0,
+          isCompleted: false,
+          skipped: false,
+        })),
+      }));
+      setExercises(formattedExercises);
+    } else {
+      setDayName("Rest Day");
+      setExercises([]);
+    }
+  };
 
   const toggleTableOfContents = () => setIsTableOfContentsOpen((prev) => !prev);
 
@@ -129,6 +134,7 @@ const WorkoutSessionScreen = () => {
         <Text style={styles.setText}>Set {setIndex + 1}</Text>
         <Text style={styles.setInfo}>Weight: {set.weight}lbs</Text>
         <Text style={styles.setInfo}>Target Reps: {set.targetReps}</Text>
+        {set.isWarmup && <Text style={styles.warmupText}>Warmup</Text>}
       </View>
       <View style={styles.setButtons}>
         {!set.skipped ? (
@@ -215,27 +221,33 @@ const WorkoutSessionScreen = () => {
         <StatusBar barStyle="light-content" />
         <View style={styles.mainContent}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>Workout Session</Text>
+            <Text style={styles.headerText}>{dayName}</Text>
           </View>
 
-          <FlatList
-            ref={flatListRef}
-            data={exercises}
-            renderItem={renderExerciseItem}
-            keyExtractor={(_, index) => index.toString()}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={SCREEN_WIDTH}
-            decelerationRate="fast"
-            contentContainerStyle={styles.flatListContainer}
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / SCREEN_WIDTH
-              );
-              setCurrentExercise(index);
-            }}
-          />
+          {exercises.length > 0 ? (
+            <FlatList
+              ref={flatListRef}
+              data={exercises}
+              renderItem={renderExerciseItem}
+              keyExtractor={(_, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={SCREEN_WIDTH}
+              decelerationRate="fast"
+              contentContainerStyle={styles.flatListContainer}
+              onMomentumScrollEnd={(event) => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x / SCREEN_WIDTH
+                );
+                setCurrentExercise(index);
+              }}
+            />
+          ) : (
+            <View style={styles.restDayContainer}>
+              <Text style={styles.restDayText}>Enjoy your rest day!</Text>
+            </View>
+          )}
         </View>
 
         <TouchableOpacity
@@ -397,6 +409,22 @@ const styles = StyleSheet.create({
   unskipExerciseButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   skippedExerciseContent: { opacity: 0.6 },
   skippedOverlay: { position: "absolute", top: 10, left: 10, zIndex: 1 },
+  warmupText: {
+    fontSize: 14,
+    color: "#FFA500",
+    fontWeight: "bold",
+    marginTop: 5,
+  },
+  restDayContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  restDayText: {
+    fontSize: 24,
+    color: "#fff",
+    textAlign: "center",
+  },
 });
 
 export default WorkoutSessionScreen;
