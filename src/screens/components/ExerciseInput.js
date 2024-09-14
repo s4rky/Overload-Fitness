@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   TextInput,
@@ -14,91 +14,109 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const SET_WIDTH = SCREEN_WIDTH * 0.6;
 const ITEM_SPACING = 10;
 
-const ExerciseInput = () => {
-  const [numSets, setNumSets] = useState("");
-  const [sets, setSets] = useState([]);
+const ExerciseInput = ({ initialSets = [], onUpdateSets }) => {
+  const [numSets, setNumSets] = useState(initialSets.length.toString());
+  const [sets, setSets] = useState(initialSets);
   const [isKg, setIsKg] = useState(true);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const flatListRef = useRef(null);
 
-  const updateSetCount = (value) => {
+  const updateSetCount = useCallback((value) => {
     const count = parseInt(value) || 0;
     setNumSets(value);
-    setSets(
-      Array(count)
+    setSets((prevSets) => {
+      const newSets = Array(count)
         .fill()
-        .map(() => ({ reps: "", weight: "", isWarmup: false }))
-    );
-  };
+        .map(
+          (_, index) =>
+            prevSets[index] || { reps: "", weight: "", isWarmup: false }
+        );
+      return newSets;
+    });
+  }, []);
 
-  const updateSet = (index, field, value) => {
+  const updateSet = useCallback((index, field, value) => {
     setSets((prevSets) => {
       const newSets = [...prevSets];
       newSets[index] = { ...newSets[index], [field]: value };
       return newSets;
     });
-  };
+  }, []);
 
-  const toggleUnit = () => setIsKg(!isKg);
+  const toggleUnit = useCallback(() => setIsKg((prev) => !prev), []);
 
-  const renderSetItem = ({ item, index }) => (
-    <View style={styles.setContainer}>
-      <Text style={styles.setLabel}>Set {index + 1}</Text>
-      <View style={styles.setInputs}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Reps</Text>
-          <View style={styles.inputWrapper}>
-            <Icon
-              name="repeat-outline"
-              size={20}
-              color="#4CAF50"
-              style={styles.icon}
-            />
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              placeholderTextColor="#888"
-              placeholder="0"
-              value={item.reps}
-              onChangeText={(value) => updateSet(index, "reps", value)}
-            />
+  const handleSetComplete = useCallback(() => {
+    if (onUpdateSets) {
+      onUpdateSets(sets);
+    }
+  }, [sets, onUpdateSets]);
+
+  const renderSetItem = useCallback(
+    ({ item, index }) => (
+      <View style={styles.setContainer}>
+        <Text style={styles.setLabel}>Set {index + 1}</Text>
+        <View style={styles.setInputs}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Reps</Text>
+            <View style={styles.inputWrapper}>
+              <Icon
+                name="repeat-outline"
+                size={20}
+                color="#4CAF50"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                placeholderTextColor="#888"
+                placeholder="0"
+                value={item.reps}
+                onChangeText={(value) => updateSet(index, "reps", value)}
+                onEndEditing={handleSetComplete}
+              />
+            </View>
+          </View>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Weight</Text>
+            <View style={styles.weightInputWrapper}>
+              <Icon
+                name="barbell-outline"
+                size={20}
+                color="#4CAF50"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.weightInput}
+                keyboardType="numeric"
+                placeholderTextColor="#888"
+                placeholder="0"
+                value={item.weight}
+                onChangeText={(value) => updateSet(index, "weight", value)}
+                onEndEditing={handleSetComplete}
+              />
+              <TouchableOpacity onPress={toggleUnit} style={styles.unitToggle}>
+                <Text style={styles.unitText}>{isKg ? "kg" : "lbs"}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Weight</Text>
-          <View style={styles.weightInputWrapper}>
-            <Icon
-              name="barbell-outline"
-              size={20}
-              color="#4CAF50"
-              style={styles.icon}
-            />
-            <TextInput
-              style={styles.weightInput}
-              keyboardType="numeric"
-              placeholderTextColor="#888"
-              placeholder="0"
-              value={item.weight}
-              onChangeText={(value) => updateSet(index, "weight", value)}
-            />
-            <TouchableOpacity onPress={toggleUnit} style={styles.unitToggle}>
-              <Text style={styles.unitText}>{isKg ? "kg" : "lbs"}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <TouchableOpacity
+          style={[
+            styles.warmupButton,
+            item.isWarmup && styles.warmupButtonActive,
+          ]}
+          onPress={() => {
+            updateSet(index, "isWarmup", !item.isWarmup);
+            handleSetComplete();
+          }}
+        >
+          <Text style={styles.warmupButtonText}>
+            {item.isWarmup ? "Warmup" : "Working Set"}
+          </Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.warmupButton,
-          item.isWarmup && styles.warmupButtonActive,
-        ]}
-        onPress={() => updateSet(index, "isWarmup", !item.isWarmup)}
-      >
-        <Text style={styles.warmupButtonText}>
-          {item.isWarmup ? "Warmup" : "Working Set"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+    ),
+    [isKg, updateSet, handleSetComplete]
   );
 
   return (
@@ -119,6 +137,7 @@ const ExerciseInput = () => {
             placeholder="0"
             value={numSets}
             onChangeText={updateSetCount}
+            onEndEditing={handleSetComplete}
           />
         </View>
       </View>

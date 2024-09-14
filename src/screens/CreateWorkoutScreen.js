@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -35,37 +35,50 @@ const CreateWorkoutScreen = () => {
   const [exercises, setExercises] = useState([]);
   const { weekPlan, updateWeekPlan } = useWorkoutPlan();
 
-  const handleDayClick = (day) => {
-    setSelectedDay(day);
-    setDayName(dayPlans[day.key]?.name || "");
-    setIsRestDay(dayPlans[day.key]?.isRest || false);
-    setExercises(dayPlans[day.key]?.exercises || []);
-  };
+  const handleDayClick = useCallback(
+    (day) => {
+      setSelectedDay(day);
+      setDayName(dayPlans[day.key]?.name || "");
+      setIsRestDay(dayPlans[day.key]?.isRest || false);
+      setExercises(dayPlans[day.key]?.exercises || []);
+    },
+    [dayPlans]
+  );
 
-  const handleAddExercise = () => {
-    setExercises([...exercises, { exercise: "" }]);
-  };
+  const handleAddExercise = useCallback(() => {
+    setExercises((prev) => [...prev, { exercise: "", sets: [] }]);
+  }, []);
 
-  const handleSelectExercise = (index, exercise) => {
-    const updatedExercises = [...exercises];
-    updatedExercises[index] = { exercise };
-    setExercises(updatedExercises);
-  };
+  const handleSelectExercise = useCallback((index, exercise) => {
+    setExercises((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], exercise };
+      return updated;
+    });
+  }, []);
 
-  const handleDone = () => {
+  const handleUpdateExerciseData = useCallback((index, setsData) => {
+    setExercises((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], sets: setsData };
+      return updated;
+    });
+  }, []);
+
+  const handleDone = useCallback(() => {
     if (selectedDay) {
       const dayPlan = isRestDay
         ? { name: "Rest", isRest: true }
         : { name: dayName, isRest: false, exercises };
-      setDayPlans({ ...dayPlans, [selectedDay.key]: dayPlan });
+      setDayPlans((prev) => ({ ...prev, [selectedDay.key]: dayPlan }));
       setSelectedDay(null);
       setDayName("");
       setIsRestDay(false);
       setExercises([]);
     }
-  };
+  }, [selectedDay, isRestDay, dayName, exercises]);
 
-  const handleSavePlan = async () => {
+  const handleSavePlan = useCallback(async () => {
     if (Object.keys(dayPlans).length !== DAYS.length) {
       Alert.alert(
         "Incomplete Plan",
@@ -81,7 +94,7 @@ const CreateWorkoutScreen = () => {
         "Your workout plan has been saved successfully!",
         [{ text: "OK" }]
       );
-      console.log("Saved plan:", dayPlans);
+      console.log("Saved plan:", JSON.stringify(dayPlans, null, 2));
     } catch (error) {
       console.error("Error saving plan:", error);
       Alert.alert(
@@ -89,32 +102,35 @@ const CreateWorkoutScreen = () => {
         "There was an error saving your plan. Please try again."
       );
     }
-  };
+  }, [dayPlans, updateWeekPlan]);
 
-  const renderDayButton = (day) => {
-    const plan = dayPlans[day.key];
-    return (
-      <TouchableOpacity
-        key={day.key}
-        style={[
-          styles.dayButton,
-          selectedDay?.key === day.key && styles.selectedDayButton,
-        ]}
-        onPress={() => handleDayClick(day)}
-      >
-        <Text style={styles.dayButtonLabel}>{day.label}</Text>
-        {plan && (
-          <Text
-            style={styles.dayButtonPlan}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {plan.isRest ? "Rest" : plan.name}
-          </Text>
-        )}
-      </TouchableOpacity>
-    );
-  };
+  const renderDayButton = useCallback(
+    (day) => {
+      const plan = dayPlans[day.key];
+      return (
+        <TouchableOpacity
+          key={day.key}
+          style={[
+            styles.dayButton,
+            selectedDay?.key === day.key && styles.selectedDayButton,
+          ]}
+          onPress={() => handleDayClick(day)}
+        >
+          <Text style={styles.dayButtonLabel}>{day.label}</Text>
+          {plan && (
+            <Text
+              style={styles.dayButtonPlan}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {plan.isRest ? "Rest" : plan.name}
+            </Text>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [dayPlans, selectedDay, handleDayClick]
+  );
 
   return (
     <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
@@ -136,7 +152,7 @@ const CreateWorkoutScreen = () => {
                 />
                 <TouchableOpacity
                   style={styles.restDayButton}
-                  onPress={() => setIsRestDay(!isRestDay)}
+                  onPress={() => setIsRestDay((prev) => !prev)}
                 >
                   <Text style={styles.restDayButtonText}>
                     {isRestDay ? "Set as Workout Day" : "Set as Rest Day"}
@@ -144,7 +160,7 @@ const CreateWorkoutScreen = () => {
                 </TouchableOpacity>
                 {!isRestDay && (
                   <>
-                    {exercises.map((_, index) => (
+                    {exercises.map((exercise, index) => (
                       <View key={index} style={styles.exerciseContainer}>
                         <ExerciseDropdown
                           placeholder="Select an exercise"
@@ -152,7 +168,12 @@ const CreateWorkoutScreen = () => {
                             handleSelectExercise(index, exercise)
                           }
                         />
-                        <ExerciseInput />
+                        <ExerciseInput
+                          initialSets={exercise.sets}
+                          onUpdateSets={(setsData) =>
+                            handleUpdateExerciseData(index, setsData)
+                          }
+                        />
                       </View>
                     ))}
                     <TouchableOpacity
