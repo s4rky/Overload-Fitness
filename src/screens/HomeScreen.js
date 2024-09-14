@@ -9,21 +9,22 @@ import {
   Dimensions,
   ScrollView,
   Animated,
-  LogBox,
 } from "react-native";
 import { withNavigation } from "react-navigation";
 import WeekDays from "./components/WeekDays";
 import ProgressGraph from "./components/ProgressGraph";
 import WelcomeUser from "./WelcomeUser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { logout, fetchLatestWeekPlan } from "./utils/auth";
+import { logout } from "./utils/auth";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useWorkoutPlan } from "./components/WorkoutPlanContext";
 
 const { width } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const today = new Date();
+  const { weekPlan, fetchWeekPlan } = useWorkoutPlan();
   const [showWorkout, setShowWorkout] = useState(false);
   const [selectedDay, setSelectedDay] = useState(today.getDay());
   const [areDaysClickable, setAreDaysClickable] = useState(true);
@@ -34,7 +35,6 @@ const HomeScreen = ({ navigation }) => {
   });
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
-  const [weekPlan, setWeekPlan] = useState(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   const formattedDate = today.toDateString();
@@ -48,6 +48,32 @@ const HomeScreen = ({ navigation }) => {
     "Saturday",
   ];
 
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const storedNickname = await AsyncStorage.getItem("nickname");
+      setNickname(storedNickname || "");
+      const storedUsername = await AsyncStorage.getItem("username");
+      setUsername(storedUsername || "");
+    };
+
+    fetchUserInfo();
+    fetchWeekPlan();
+
+    navigation.setOptions({
+      openSplitModal: (event) => {
+        const { pageY, pageX } = event.nativeEvent;
+        setDropdownPosition({ top: pageY + 40, right: width - pageX });
+        setShowSplitModal(true);
+      },
+    });
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -58,50 +84,6 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // LogBox.ignoreLogs([
-  //   "Non-serializable values were found in the navigation state",
-  // ]);
-
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const storedNickname = await AsyncStorage.getItem("nickname");
-      setNickname(storedNickname || "");
-    };
-    fetchUserInfo();
-
-    const fetchUsername = async () => {
-      const storedUsername = await AsyncStorage.getItem("username");
-      setUsername(storedUsername || "");
-    };
-    fetchUsername();
-
-    navigation.setOptions({
-      openSplitModal: (event) => {
-        const { pageY, pageX } = event.nativeEvent;
-        setDropdownPosition({ top: pageY + 40, right: width - pageX });
-        setShowSplitModal(true);
-      },
-    });
-    const fetchWeekPlan = async () => {
-      try {
-        const latestPlan = await fetchLatestWeekPlan();
-        if (latestPlan && latestPlan.data) {
-          setWeekPlan(latestPlan.data);
-        }
-      } catch (error) {
-        console.error("Error fetching week plan:", error);
-      }
-    };
-
-    fetchWeekPlan();
-
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
   const handleOverloadPress = () => {
     navigation.navigate("WorkoutSession");
   };
@@ -110,7 +92,6 @@ const HomeScreen = ({ navigation }) => {
     setShowWorkout(true);
     setAreDaysClickable(false);
     setSelectedDay(today.getDay());
-    console.log("Work pressed, selected day set to:", today.getDay());
   };
 
   const handleBackPress = () => {
@@ -162,7 +143,6 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.workoutHeader}>
           Workout for {days[selectedDay]}
         </Text>
-
         <Text style={styles.workoutText}>
           {dayPlan.isRest ? "Rest Day" : dayPlan.name}
         </Text>

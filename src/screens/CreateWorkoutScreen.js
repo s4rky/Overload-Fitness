@@ -15,6 +15,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Icon from "react-native-vector-icons/Ionicons";
 import { saveWeekPlan } from "./utils/auth";
 
+import { useWorkoutPlan } from "./components/WorkoutPlanContext";
+
 const DAYS = [
   { key: "sun", label: "S", fullName: "Sunday" },
   { key: "mon", label: "M", fullName: "Monday" },
@@ -31,6 +33,7 @@ const CreateWorkoutScreen = () => {
   const [dayName, setDayName] = useState("");
   const [isRestDay, setIsRestDay] = useState(false);
   const [exercises, setExercises] = useState([]);
+  const { weekPlan, updateWeekPlan } = useWorkoutPlan();
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
@@ -72,7 +75,7 @@ const CreateWorkoutScreen = () => {
     }
 
     try {
-      await saveWeekPlan(dayPlans);
+      await updateWeekPlan(dayPlans);
       Alert.alert(
         "Plan Saved",
         "Your workout plan has been saved successfully!",
