@@ -16,6 +16,7 @@ import { ThemeProvider } from "./src/screens/context/ThemeContext";
 import Icon from "react-native-vector-icons/Ionicons";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { LinearGradient } from "expo-linear-gradient";
+import { WorkoutPlanProvider } from "./src/screens/components/WorkoutPlanContext";
 
 // Import your screens
 import HomeScreen from "./src/screens/HomeScreen";
@@ -195,10 +196,12 @@ const App = () => {
 
   return (
     <ThemeProvider value={theme}>
-      <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
-      <NavigationContainer>
-        <DrawerNavigator />
-      </NavigationContainer>
+      <WorkoutPlanProvider>
+        <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
+        <NavigationContainer>
+          <DrawerNavigator />
+        </NavigationContainer>
+      </WorkoutPlanProvider>
     </ThemeProvider>
   );
 };
