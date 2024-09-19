@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { saveWeekPlan } from "./utils/auth";
 
 import { useWorkoutPlan } from "./components/WorkoutPlanContext";
+import { useRoute, useNavigation } from "@react-navigation/native";
 
 const DAYS = [
   { key: "sun", label: "S", fullName: "Sunday" },
@@ -28,13 +29,27 @@ const DAYS = [
 ];
 
 const CreateWorkoutScreen = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { updateWeekPlan } = useWorkoutPlan();
   const [selectedDay, setSelectedDay] = useState(null);
   const [dayPlans, setDayPlans] = useState({});
   const [dayName, setDayName] = useState("");
   const [isRestDay, setIsRestDay] = useState(false);
   const [exercises, setExercises] = useState([]);
-  const [workoutName, setWorkoutName] = useState(""); // New state for workout name
-  const { weekPlan, updateWeekPlan } = useWorkoutPlan();
+  const [workoutName, setWorkoutName] = useState("");
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingPlanId, setEditingPlanId] = useState(null);
+
+  useEffect(() => {
+    if (route.params?.plan) {
+      const plan = route.params.plan;
+      setWorkoutName(plan.name);
+      setDayPlans(plan.data);
+      setIsEditMode(true);
+      setEditingPlanId(plan.id);
+    }
+  }, [route.params]);
 
   const handleDayClick = useCallback(
     (day) => {
@@ -97,26 +112,44 @@ const CreateWorkoutScreen = () => {
     }
 
     const planToSave = {
+      id: isEditMode ? editingPlanId : undefined,
       name: workoutName,
       days: dayPlans,
     };
 
+    console.log("Plan being saved:", JSON.stringify(planToSave, null, 2));
+
     try {
+      if (isEditMode) {
+        planToSave.id = editingPlanId;
+      }
       await updateWeekPlan(planToSave);
+      const savedPlan = await updateWeekPlan(planToSave);
+      console.log(
+        "Plan saved successfully:",
+        JSON.stringify(savedPlan, null, 2)
+      );
+
       Alert.alert(
         "Plan Saved",
         "Your workout plan has been saved successfully!",
-        [{ text: "OK" }]
+        [{ text: "OK", onPress: () => navigation.goBack() }]
       );
-      console.log("Saved plan:", JSON.stringify(planToSave, null, 2));
     } catch (error) {
       console.error("Error saving plan:", error);
       Alert.alert(
         "Error",
-        "There was an error saving your plan. Please try again."
+        `There was an error saving your plan ${error.message}. Please try again.`
       );
     }
-  }, [dayPlans, workoutName, updateWeekPlan]);
+  }, [
+    dayPlans,
+    workoutName,
+    updateWeekPlan,
+    isEditMode,
+    editingPlanId,
+    navigation,
+  ]);
 
   const renderDayButton = useCallback(
     (day) => {
@@ -226,7 +259,9 @@ const CreateWorkoutScreen = () => {
           style={styles.savePlanButton}
           onPress={handleSavePlan}
         >
-          <Text style={styles.savePlanButtonText}>Save Plan</Text>
+          <Text style={styles.savePlanButtonText}>
+            {isEditMode ? "Update Plan" : "Save Plan"}
+          </Text>
         </TouchableOpacity>
       </SafeAreaView>
     </LinearGradient>

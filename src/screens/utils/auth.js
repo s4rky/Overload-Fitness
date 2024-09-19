@@ -94,3 +94,96 @@ export const fetchLatestWeekPlan = async () => {
 
   return response.json();
 };
+
+export const fetchAllWeekPlans = async () => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch all week plans");
+  }
+
+  return response.json();
+};
+
+export const deleteWeekPlan = async (planId) => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/${planId}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete week plan");
+  }
+
+  return true;
+};
+
+export const fetchWeekPlanById = async (planId) => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/${planId}/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch week plan");
+  }
+
+  return response.json();
+};
+
+export const updateWeekPlan = async (planData) => {
+  const csrfToken = await fetchCsrfToken();
+  try {
+    const dataToSend = {
+      id: planData.id,
+      name: planData.name,
+      data: planData.data, // This should already be correct now
+    };
+
+    console.log(
+      "Data being sent to server:",
+      JSON.stringify(dataToSend, null, 2)
+    );
+
+    const response = await fetch(`${BASE_URL}/weekplans/${planData.id}/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify(dataToSend),
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Server response:", errorData);
+      throw new Error(
+        `Failed to update week plan: ${JSON.stringify(errorData)}`
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Error in updateWeekPlan:", error);
+    throw error;
+  }
+};

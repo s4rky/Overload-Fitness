@@ -14,6 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "username", "email", "password", "nickname"]
         extra_kwargs = {"password": {"write_only": True}}
 
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.data = validated_data.get('data', instance.data)
+        instance.save()
+        return instance
+
     def create(self, validated_data):
         logger.debug(f"Creating user: {validated_data['username']}")
         logger.debug(f"Raw password: {validated_data['password'][:3]}... (truncated)")

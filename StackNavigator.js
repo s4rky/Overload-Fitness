@@ -103,7 +103,7 @@ const StackNavigator = () => (
     <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
     <Stack.Screen name="WorkoutSession" component={WorkoutSessionScreen} />
     <Stack.Screen name="CustomSplit" component={CustomSplitScreen} />
-    <Stack.Screen name="Saved" component={SavedWorkoutScreen} />
+    <Stack.Screen name="My Plans" component={SavedWorkoutScreen} />
   </Stack.Navigator>
 );
 
