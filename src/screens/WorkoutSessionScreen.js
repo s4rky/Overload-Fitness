@@ -29,10 +29,16 @@ const WorkoutSessionScreen = () => {
   }, [weekPlan]);
 
   const loadTodayWorkout = () => {
+    if (!weekPlan || !weekPlan.days) {
+      setDayName("No workout plan available");
+      setExercises([]);
+      return;
+    }
+
     const today = new Date()
       .toLocaleString("en-us", { weekday: "short" })
       .toLowerCase();
-    const todayPlan = weekPlan[today];
+    const todayPlan = weekPlan.days[today];
 
     if (todayPlan && !todayPlan.isRest) {
       setDayName(todayPlan.name);
@@ -245,7 +251,9 @@ const WorkoutSessionScreen = () => {
             />
           ) : (
             <View style={styles.restDayContainer}>
-              <Text style={styles.restDayText}>Enjoy your rest day!</Text>
+              <Text style={styles.restDayText}>
+                {dayName === "Rest Day" ? "Enjoy your rest day!" : dayName}
+              </Text>
             </View>
           )}
         </View>

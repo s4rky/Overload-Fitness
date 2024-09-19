@@ -10,6 +10,7 @@ import WorkoutSessionScreen from "./src/screens/WorkoutSessionScreen";
 import CustomSplitScreen from "./src/screens/CustomSplitScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import SignupScreen from "./src/screens/SignUpScreen";
+import SavedWorkoutScreen from "./src/screens/SavedWorkoutScreen";
 
 const Stack = createStackNavigator();
 
@@ -102,6 +103,7 @@ const StackNavigator = () => (
     <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
     <Stack.Screen name="WorkoutSession" component={WorkoutSessionScreen} />
     <Stack.Screen name="CustomSplit" component={CustomSplitScreen} />
+    <Stack.Screen name="Saved" component={SavedWorkoutScreen} />
   </Stack.Navigator>
 );
 

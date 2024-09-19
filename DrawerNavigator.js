@@ -29,6 +29,18 @@ const CustomDrawerContent = (props) => {
           )}
           labelStyle={styles.drawerItemLabel}
         />
+
+        <DrawerItem
+          label="Saved Workouts"
+          onPress={() => {
+            // Implement your logout logic here
+            props.navigation.navigate("Saved");
+          }}
+          icon={({ color, size }) => (
+            <Icon name="save-outline" color="#007AFF" size={size} />
+          )}
+          labelStyle={styles.drawerItemLabel}
+        />
         <DrawerItem
           label="Logout"
           onPress={() => {
@@ -54,7 +66,7 @@ const DrawerNavigator = () => {
       screenOptions={{
         drawerStyle: {
           backgroundColor: "#1a1a2e",
-          width: 240,
+          width: 250,
         },
         drawerLabelStyle: {
           color: "#fff",

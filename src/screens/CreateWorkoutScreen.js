@@ -33,6 +33,7 @@ const CreateWorkoutScreen = () => {
   const [dayName, setDayName] = useState("");
   const [isRestDay, setIsRestDay] = useState(false);
   const [exercises, setExercises] = useState([]);
+  const [workoutName, setWorkoutName] = useState(""); // New state for workout name
   const { weekPlan, updateWeekPlan } = useWorkoutPlan();
 
   const handleDayClick = useCallback(
@@ -87,14 +88,27 @@ const CreateWorkoutScreen = () => {
       return;
     }
 
+    if (!workoutName.trim()) {
+      Alert.alert(
+        "Missing Workout Name",
+        "Please enter a name for your workout plan."
+      );
+      return;
+    }
+
+    const planToSave = {
+      name: workoutName,
+      days: dayPlans,
+    };
+
     try {
-      await updateWeekPlan(dayPlans);
+      await updateWeekPlan(planToSave);
       Alert.alert(
         "Plan Saved",
         "Your workout plan has been saved successfully!",
         [{ text: "OK" }]
       );
-      console.log("Saved plan:", JSON.stringify(dayPlans, null, 2));
+      console.log("Saved plan:", JSON.stringify(planToSave, null, 2));
     } catch (error) {
       console.error("Error saving plan:", error);
       Alert.alert(
@@ -102,7 +116,7 @@ const CreateWorkoutScreen = () => {
         "There was an error saving your plan. Please try again."
       );
     }
-  }, [dayPlans, updateWeekPlan]);
+  }, [dayPlans, workoutName, updateWeekPlan]);
 
   const renderDayButton = useCallback(
     (day) => {
@@ -138,6 +152,13 @@ const CreateWorkoutScreen = () => {
         <View style={styles.content}>
           <View style={styles.daySelector}>{DAYS.map(renderDayButton)}</View>
           <ScrollView style={styles.plannerPanel}>
+            <TextInput
+              style={styles.workoutNameInput}
+              placeholder="Enter workout plan name"
+              placeholderTextColor="#888"
+              value={workoutName}
+              onChangeText={setWorkoutName}
+            />
             {selectedDay ? (
               <View style={styles.planContent}>
                 <Text style={styles.panelTitle}>
@@ -337,6 +358,16 @@ const styles = StyleSheet.create({
   },
   exerciseInputWrapper: {
     marginTop: 15, // This adds space between the dropdown and the input
+  },
+  workoutNameInput: {
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    borderRadius: 5,
+    padding: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    color: "#fff",
+    width: "100%",
   },
 });
 

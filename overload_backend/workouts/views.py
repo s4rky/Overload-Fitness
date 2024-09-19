@@ -95,7 +95,6 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Exercise.objects.filter(workout__user=self.request.user)
 
-
 class WeekPlanViewSet(viewsets.ModelViewSet):
     queryset = WeekPlan.objects.all()
     serializer_class = WeekPlanSerializer
@@ -118,3 +117,14 @@ class WeekPlanViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": "No week plan found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        name = data.get('name', 'Unnamed Plan')
+        plan_data = data.get('days', {})
+        
+        serializer = self.get_serializer(data={'name': name, 'data': plan_data})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

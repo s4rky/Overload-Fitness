@@ -63,7 +63,7 @@ export const saveWeekPlan = async (planData) => {
       "Content-Type": "application/json",
       "X-CSRFToken": csrfToken,
     },
-    body: JSON.stringify({ data: planData }),
+    body: JSON.stringify(planData), // Now sending the entire planData object
     credentials: "include",
   });
 
