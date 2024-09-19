@@ -168,12 +168,14 @@ const CreateWorkoutScreen = () => {
                             handleSelectExercise(index, exercise)
                           }
                         />
-                        <ExerciseInput
-                          initialSets={exercise.sets}
-                          onUpdateSets={(setsData) =>
-                            handleUpdateExerciseData(index, setsData)
-                          }
-                        />
+                        <View style={styles.exerciseInputWrapper}>
+                          <ExerciseInput
+                            initialSets={exercise.sets}
+                            onUpdateSets={(setsData) =>
+                              handleUpdateExerciseData(index, setsData)
+                            }
+                          />
+                        </View>
                       </View>
                     ))}
                     <TouchableOpacity
@@ -329,6 +331,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  exerciseContainer: {
+    marginBottom: 25, // Increased from 15 to create more space between exercises
+  },
+  exerciseInputWrapper: {
+    marginTop: 15, // This adds space between the dropdown and the input
   },
 });
 
