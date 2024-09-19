@@ -87,7 +87,7 @@ const HomeScreen = ({ navigation }) => {
       return () => {
         isActive = false;
       };
-    }, [fetchWeekPlan, weekPlan])
+    }, [fetchWeekPlan])
   );
 
   useFocusEffect(
@@ -208,17 +208,22 @@ const HomeScreen = ({ navigation }) => {
       navigation.navigate("CustomSplit");
     }
   };
+
   const renderWorkoutInfo = () => {
     if (isLoading) {
       return <Text style={styles.workoutText}>Loading workout plan...</Text>;
     }
 
-    if (!weekPlan || Object.keys(weekPlan).length === 0) {
+    if (
+      !weekPlan ||
+      !weekPlan.days ||
+      Object.keys(weekPlan.days).length === 0
+    ) {
       return <Text style={styles.workoutText}>No workout plan available</Text>;
     }
 
     const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
-    const dayPlan = weekPlan.days ? weekPlan.days[dayKey] : weekPlan[dayKey];
+    const dayPlan = weekPlan.days[dayKey];
 
     if (!dayPlan) {
       return (
@@ -237,18 +242,19 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.workoutHeader}>
           Workout for {days[selectedDay]}
         </Text>
-        <Text style={styles.workoutText}>
-          {dayPlan.isRest ? "Rest Day" : dayPlan.name}
-        </Text>
+        <Text style={styles.workoutText}>{dayPlan.name}</Text>
 
-        {!dayPlan.isRest && dayPlan.exercises && (
+        {dayPlan.isRest ? (
+          <Text style={styles.restDayText}>Rest Day</Text>
+        ) : (
           <>
             <Text style={styles.exercisesHeader}>Exercises:</Text>
-            {dayPlan.exercises.map((exercise, index) => (
-              <Text key={index} style={styles.exerciseText}>
-                • {exercise.exercise}
-              </Text>
-            ))}
+            {dayPlan.exercises &&
+              dayPlan.exercises.map((exercise, index) => (
+                <Text key={index} style={styles.exerciseText}>
+                  • {exercise.exercise}
+                </Text>
+              ))}
           </>
         )}
 
@@ -268,6 +274,7 @@ const HomeScreen = ({ navigation }) => {
       </Animated.View>
     );
   };
+
   return (
     <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

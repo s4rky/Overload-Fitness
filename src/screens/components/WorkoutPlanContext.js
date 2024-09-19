@@ -25,8 +25,8 @@ export const WorkoutPlanProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const latestPlan = await fetchLatestWeekPlan();
-      if (latestPlan && latestPlan.data) {
-        setWeekPlan(latestPlan.data);
+      if (latestPlan) {
+        setWeekPlan(latestPlan);
       }
     } catch (error) {
       console.error("Error fetching week plan:", error);
@@ -143,9 +143,19 @@ export const WorkoutPlanProvider = ({ children }) => {
     deleteWeekPlan,
     fetchPlanById,
   };
-
   return (
-    <WorkoutPlanContext.Provider value={value}>
+    <WorkoutPlanContext.Provider
+      value={{
+        weekPlan,
+        allWeekPlans,
+        isLoading,
+        fetchWeekPlan,
+        fetchAllPlans,
+        updateWeekPlan,
+        deleteWeekPlan,
+        fetchPlanById,
+      }}
+    >
       {children}
     </WorkoutPlanContext.Provider>
   );

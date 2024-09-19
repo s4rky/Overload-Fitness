@@ -35,7 +35,7 @@ const CreateWorkoutScreen = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [dayPlans, setDayPlans] = useState({});
   const [dayName, setDayName] = useState("");
-  const [isRestDay, setIsRestDay] = useState(false);
+  const [isRestDay, setIsRestDay] = useState(true);
   const [exercises, setExercises] = useState([]);
   const [workoutName, setWorkoutName] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -48,15 +48,23 @@ const CreateWorkoutScreen = () => {
       setDayPlans(plan.data);
       setIsEditMode(true);
       setEditingPlanId(plan.id);
+    } else {
+      // Set all days to rest by default
+      const defaultRestDays = DAYS.reduce((acc, day) => {
+        acc[day.key] = { name: "Rest", isRest: true };
+        return acc;
+      }, {});
+      setDayPlans(defaultRestDays);
     }
   }, [route.params]);
 
   const handleDayClick = useCallback(
     (day) => {
       setSelectedDay(day);
-      setDayName(dayPlans[day.key]?.name || "");
-      setIsRestDay(dayPlans[day.key]?.isRest || false);
-      setExercises(dayPlans[day.key]?.exercises || []);
+      const dayPlan = dayPlans[day.key] || { name: "Rest", isRest: true };
+      setDayName(dayPlan.name);
+      setIsRestDay(dayPlan.isRest);
+      setExercises(dayPlan.exercises || []);
     },
     [dayPlans]
   );
