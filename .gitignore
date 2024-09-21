@@ -94,3 +94,6 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+*.pyc
+__pycache__
+*.sqlite3
