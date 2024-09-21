@@ -11,17 +11,20 @@ const WorkoutPlanContext = createContext();
 
 export const WorkoutPlanProvider = ({ children }) => {
   const [weekPlan, setWeekPlan] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchWeekPlan = useCallback(async () => {
+  const loadWeekPlan = useCallback(async () => {
     setIsLoading(true);
     try {
       const latestPlan = await fetchLatestWeekPlan();
       if (latestPlan && latestPlan.data) {
         setWeekPlan(latestPlan.data);
+      } else {
+        setWeekPlan(null);
       }
     } catch (error) {
       console.error("Error fetching week plan:", error);
+      setWeekPlan(null);
     } finally {
       setIsLoading(false);
     }
@@ -40,13 +43,13 @@ export const WorkoutPlanProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetchWeekPlan();
-  }, [fetchWeekPlan]);
+    loadWeekPlan();
+  }, [loadWeekPlan]);
 
   const value = {
     weekPlan,
     isLoading,
-    fetchWeekPlan,
+    loadWeekPlan,
     updateWeekPlan,
   };
 

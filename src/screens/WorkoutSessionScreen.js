@@ -9,6 +9,7 @@ import {
   ScrollView,
   Dimensions,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,50 +23,82 @@ const WorkoutSessionScreen = () => {
   const flatListRef = useRef(null);
   const [exercises, setExercises] = useState([]);
   const [dayName, setDayName] = useState("");
-  const { weekPlan } = useWorkoutPlan();
+  const { weekPlan, isLoading: isContextLoading } = useWorkoutPlan();
+  const [isScreenLoading, setIsScreenLoading] = useState(true);
 
   useEffect(() => {
-    loadTodayWorkout();
-  }, [weekPlan]);
+    console.log("useEffect triggered");
+    console.log("isContextLoading:", isContextLoading);
+    console.log("weekPlan:", JSON.stringify(weekPlan, null, 2));
+
+    if (!isContextLoading) {
+      loadTodayWorkout();
+    }
+  }, [weekPlan, isContextLoading]);
+
+  useEffect(() => {
+    console.log("useEffect triggered");
+    console.log("isContextLoading:", isContextLoading);
+    console.log("weekPlan:", JSON.stringify(weekPlan, null, 2));
+
+    if (!isContextLoading) {
+      loadTodayWorkout();
+    }
+  }, [weekPlan, isContextLoading]);
 
   const loadTodayWorkout = () => {
+    console.log("loadTodayWorkout called");
+    setIsScreenLoading(true);
+
     if (!weekPlan) {
+      console.log("weekPlan is falsy:", weekPlan);
       setDayName("No workout plan available");
       setExercises([]);
-      console.log("weekPlan is null or undefined");
+      setIsScreenLoading(false);
       return;
     }
 
-    console.log("weekPlan:", weekPlan);
+    console.log("weekPlan:", JSON.stringify(weekPlan, null, 2));
 
     const today = new Date()
       .toLocaleString("en-us", { weekday: "short" })
       .toLowerCase();
-    const todayPlan = weekPlan[today];
-
     console.log("Today:", today);
-    console.log("Today's plan:", todayPlan);
+
+    // Handle both data structures
+    const days = weekPlan.days || weekPlan;
+    const todayPlan = days[today];
+    console.log("Today's plan:", JSON.stringify(todayPlan, null, 2));
 
     if (todayPlan && !todayPlan.isRest) {
+      console.log("Setting up workout for today");
       setDayName(todayPlan.name);
-      const formattedExercises = todayPlan.exercises.map((exercise) => ({
-        name: exercise.exercise,
-        skipped: false,
-        sets: exercise.sets.map((set) => ({
-          weight: set.weight,
-          targetReps: set.reps,
-          isWarmup: set.isWarmup,
-          completedReps: 0,
-          isCompleted: false,
+      if (todayPlan.exercises && todayPlan.exercises.length > 0) {
+        const formattedExercises = todayPlan.exercises.map((exercise) => ({
+          name: exercise.exercise,
           skipped: false,
-        })),
-      }));
-      setExercises(formattedExercises);
+          sets: exercise.sets.map((set) => ({
+            weight: set.weight,
+            targetReps: set.reps,
+            isWarmup: set.isWarmup,
+            completedReps: 0,
+            isCompleted: false,
+            skipped: false,
+          })),
+        }));
+        setExercises(formattedExercises);
+      } else {
+        console.log("No exercises found for today");
+        setExercises([]);
+      }
     } else {
+      console.log("No workout or rest day for today");
       setDayName(todayPlan ? "Rest Day" : "No workout plan for today");
       setExercises([]);
     }
+    setIsScreenLoading(false);
   };
+
   const toggleTableOfContents = () => setIsTableOfContentsOpen((prev) => !prev);
 
   const scrollToExercise = (index) => {
@@ -235,7 +268,12 @@ const WorkoutSessionScreen = () => {
             <Text style={styles.headerText}>{dayName}</Text>
           </View>
 
-          {exercises.length > 0 ? (
+          {isContextLoading || isScreenLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.loadingText}>Loading workout plan...</Text>
+            </View>
+          ) : exercises.length > 0 ? (
             <FlatList
               ref={flatListRef}
               data={exercises}
@@ -263,6 +301,16 @@ const WorkoutSessionScreen = () => {
           )}
         </View>
 
+        <TouchableOpacity
+          style={styles.debugButton}
+          onPress={() => {
+            console.log("Debug button pressed");
+            console.log("Current weekPlan:", JSON.stringify(weekPlan, null, 2));
+            loadTodayWorkout();
+          }}
+        >
+          <Text style={styles.debugButtonText}>Debug</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.tocButton,
@@ -437,6 +485,28 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#fff",
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 16,
+    marginTop: 10,
+  },
+  debugButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    padding: 10,
+    borderRadius: 5,
+  },
+  debugButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 
