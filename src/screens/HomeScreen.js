@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ScrollView,
   Animated,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { withNavigation } from "react-navigation";
 import WeekDays from "./components/WeekDays";
 import ProgressGraph from "./components/ProgressGraph";
@@ -24,7 +25,8 @@ const { width } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const today = new Date();
-  const { weekPlan, fetchWeekPlan } = useWorkoutPlan();
+
+  const { weekPlan, fetchWeekPlan, isLoading } = useWorkoutPlan();
   const [showWorkout, setShowWorkout] = useState(false);
   const [selectedDay, setSelectedDay] = useState(today.getDay());
   const [areDaysClickable, setAreDaysClickable] = useState(true);
@@ -48,16 +50,15 @@ const HomeScreen = ({ navigation }) => {
     "Saturday",
   ];
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const storedNickname = await AsyncStorage.getItem("nickname");
-      setNickname(storedNickname || "");
-      const storedUsername = await AsyncStorage.getItem("username");
-      setUsername(storedUsername || "");
-    };
+  const fetchUserInfo = useCallback(async () => {
+    const storedNickname = await AsyncStorage.getItem("nickname");
+    setNickname(storedNickname || "");
+    const storedUsername = await AsyncStorage.getItem("username");
+    setUsername(storedUsername || "");
+  }, []);
 
+  useEffect(() => {
     fetchUserInfo();
-    fetchWeekPlan();
 
     navigation.setOptions({
       openSplitModal: (event) => {
@@ -72,7 +73,97 @@ const HomeScreen = ({ navigation }) => {
       duration: 1000,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fetchUserInfo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (isActive && !weekPlan) {
+          await fetchWeekPlan();
+        }
+      };
+      fetchData();
+      return () => {
+        isActive = false;
+      };
+    }, [fetchWeekPlan, weekPlan])
+  );
 
   const handleLogout = async () => {
     try {
@@ -117,14 +208,17 @@ const HomeScreen = ({ navigation }) => {
       navigation.navigate("CustomSplit");
     }
   };
-
   const renderWorkoutInfo = () => {
-    if (!weekPlan) {
+    if (isLoading) {
+      return <Text style={styles.workoutText}>Loading workout plan...</Text>;
+    }
+
+    if (!weekPlan || Object.keys(weekPlan).length === 0) {
       return <Text style={styles.workoutText}>No workout plan available</Text>;
     }
 
     const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
-    const dayPlan = weekPlan[dayKey];
+    const dayPlan = weekPlan.days ? weekPlan.days[dayKey] : weekPlan[dayKey];
 
     if (!dayPlan) {
       return (
@@ -174,7 +268,6 @@ const HomeScreen = ({ navigation }) => {
       </Animated.View>
     );
   };
-
   return (
     <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

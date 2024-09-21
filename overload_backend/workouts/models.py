@@ -34,6 +34,7 @@ class UserProfile(models.Model):
 
 class WeekPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, default="Unnamed Plan")  # New field
     data = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -41,4 +42,4 @@ class WeekPlan(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Week Plan for {self.user.username} - {self.created_at}"
+        return f"{self.name} for {self.user.username} - {self.created_at}"

@@ -29,10 +29,22 @@ const WorkoutSessionScreen = () => {
   }, [weekPlan]);
 
   const loadTodayWorkout = () => {
+    if (!weekPlan) {
+      setDayName("No workout plan available");
+      setExercises([]);
+      console.log("weekPlan is null or undefined");
+      return;
+    }
+
+    console.log("weekPlan:", weekPlan);
+
     const today = new Date()
       .toLocaleString("en-us", { weekday: "short" })
       .toLowerCase();
     const todayPlan = weekPlan[today];
+
+    console.log("Today:", today);
+    console.log("Today's plan:", todayPlan);
 
     if (todayPlan && !todayPlan.isRest) {
       setDayName(todayPlan.name);
@@ -50,11 +62,10 @@ const WorkoutSessionScreen = () => {
       }));
       setExercises(formattedExercises);
     } else {
-      setDayName("Rest Day");
+      setDayName(todayPlan ? "Rest Day" : "No workout plan for today");
       setExercises([]);
     }
   };
-
   const toggleTableOfContents = () => setIsTableOfContentsOpen((prev) => !prev);
 
   const scrollToExercise = (index) => {
@@ -245,7 +256,9 @@ const WorkoutSessionScreen = () => {
             />
           ) : (
             <View style={styles.restDayContainer}>
-              <Text style={styles.restDayText}>Enjoy your rest day!</Text>
+              <Text style={styles.restDayText}>
+                {dayName === "Rest Day" ? "Enjoy your rest day!" : dayName}
+              </Text>
             </View>
           )}
         </View>
