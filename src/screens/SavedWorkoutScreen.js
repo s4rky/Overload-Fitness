@@ -1,20 +1,84 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
   SafeAreaView,
   Dimensions,
-  Alert,
 } from "react-native";
-
-import CreateWorkoutScreen from "./CreateWorkoutScreen";
+import { LinearGradient } from "expo-linear-gradient";
+import { useWorkoutPlan } from "./components/WorkoutPlanContext";
 
 const SavedWorkoutScreen = () => {
-  return <Text>hello welcome to saved workouts!</Text>;
+  const { weekPlan } = useWorkoutPlan();
+  const [savedWorkouts, setSavedWorkouts] = useState([]);
+
+  useEffect(() => {
+    if (weekPlan) {
+      setSavedWorkouts([weekPlan]);
+    }
+  }, [weekPlan]);
+
+  const renderWorkoutPanel = (workout, index) => (
+    <TouchableOpacity key={index} style={styles.workoutPanel}>
+      <Text style={styles.workoutName}>{workout.name}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <Text style={styles.title}>Saved Workouts</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {savedWorkouts.length > 0 ? (
+            savedWorkouts.map(renderWorkoutPanel)
+          ) : (
+            <Text style={styles.noWorkoutsText}>
+              No saved workouts. Create a workout to see it here!
+            </Text>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  workoutPanel: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 15,
+  },
+  workoutName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  noWorkoutsText: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 50,
+  },
+});
 
 export default SavedWorkoutScreen;
