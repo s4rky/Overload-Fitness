@@ -6,25 +6,83 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Dimensions,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWorkoutPlan } from "./components/WorkoutPlanContext";
+import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
 
 const SavedWorkoutScreen = () => {
-  const { weekPlan } = useWorkoutPlan();
-  const [savedWorkouts, setSavedWorkouts] = useState([]);
+  const { allWeekPlans, loadAllWeekPlans, deletePlan } = useWorkoutPlan();
+  const [localWeekPlans, setLocalWeekPlans] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
-    if (weekPlan) {
-      setSavedWorkouts([weekPlan]);
-    }
-  }, [weekPlan]);
+    const fetchPlans = async () => {
+      setLocalWeekPlans(allWeekPlans);
+      await loadAllWeekPlans();
+    };
+    fetchPlans();
+  }, [loadAllWeekPlans]);
 
-  const renderWorkoutPanel = (workout, index) => (
-    <TouchableOpacity key={index} style={styles.workoutPanel}>
+  useEffect(() => {
+    setLocalWeekPlans(allWeekPlans);
+  }, [allWeekPlans]);
+
+  const handleDelete = (planId) => {
+    Alert.alert(
+      "Delete Workout",
+      "Are you sure you want to delete this workout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          onPress: async () => {
+            // Optimistically update UI
+            setLocalWeekPlans((prevPlans) =>
+              prevPlans.filter((plan) => plan.id !== planId)
+            );
+            try {
+              await deletePlan(planId);
+            } catch (error) {
+              // If deletion fails, revert the UI
+              console.error("Failed to delete plan:", error);
+              Alert.alert(
+                "Error",
+                "Failed to delete the workout. Please try again."
+              );
+              setLocalWeekPlans(allWeekPlans);
+            }
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  const handleEdit = (plan) => {
+    navigation.navigate("CreateWorkout", { editPlan: plan });
+  };
+
+  const renderWorkoutPanel = (workout) => (
+    <View key={workout.id} style={styles.workoutPanel}>
       <Text style={styles.workoutName}>{workout.name}</Text>
-    </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          onPress={() => handleEdit(workout)}
+          style={styles.editButton}
+        >
+          <Icon name="pencil" size={24} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleDelete(workout.id)}
+          style={styles.deleteButton}
+        >
+          <Icon name="trash" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   return (
@@ -32,8 +90,8 @@ const SavedWorkoutScreen = () => {
       <SafeAreaView style={styles.safeArea}>
         <Text style={styles.title}>Saved Workouts</Text>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {savedWorkouts.length > 0 ? (
-            savedWorkouts.map(renderWorkoutPanel)
+          {localWeekPlans.length > 0 ? (
+            localWeekPlans.map(renderWorkoutPanel)
           ) : (
             <Text style={styles.noWorkoutsText}>
               No saved workouts. Create a workout to see it here!
@@ -44,7 +102,6 @@ const SavedWorkoutScreen = () => {
     </LinearGradient>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -78,6 +135,24 @@ const styles = StyleSheet.create({
     color: "#bbb",
     textAlign: "center",
     marginTop: 50,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 50,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 10,
+  },
+  editButton: {
+    padding: 10,
+    marginRight: 10,
+  },
+  deleteButton: {
+    padding: 10,
   },
 });
 

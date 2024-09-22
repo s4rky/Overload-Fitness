@@ -94,3 +94,56 @@ export const fetchLatestWeekPlan = async () => {
 
   return response.json();
 };
+
+export const fetchAllWeekPlans = async () => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch week plans");
+  }
+
+  return response.json();
+};
+
+export const deleteWeekPlan = async (planId) => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/${planId}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete week plan");
+  }
+};
+
+export const updateWeekPlan = async (planId, updatedPlan) => {
+  const csrfToken = await fetchCsrfToken();
+  const response = await fetch(`${BASE_URL}/weekplans/${planId}/`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken,
+    },
+    body: JSON.stringify(updatedPlan),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update week plan");
+  }
+
+  return response.json();
+};
