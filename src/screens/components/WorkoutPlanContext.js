@@ -11,6 +11,7 @@ import {
   fetchAllWeekPlans,
   deleteWeekPlan,
   updateWeekPlan as updateWeekPlanApi,
+  setActiveWeekPlan as setActiveWeekPlanApi,
 } from "../utils/auth";
 
 const WorkoutPlanContext = createContext();
@@ -104,6 +105,25 @@ export const WorkoutPlanProvider = ({ children }) => {
     [weekPlan]
   );
 
+  const setActiveWeekPlan = useCallback(
+    async (planId) => {
+      setIsLoading(true);
+      try {
+        await setActiveWeekPlanApi(planId);
+        const updatedPlan = allWeekPlans.find((plan) => plan.id === planId);
+        if (updatedPlan) {
+          setWeekPlan(updatedPlan);
+        }
+        await loadAllWeekPlans();
+      } catch (error) {
+        console.error("Error setting active week plan:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [allWeekPlans, loadAllWeekPlans]
+  );
+
   useEffect(() => {
     loadWeekPlan();
     loadAllWeekPlans();
@@ -118,6 +138,7 @@ export const WorkoutPlanProvider = ({ children }) => {
     loadAllWeekPlans,
     deletePlan,
     updatePlan,
+    setActiveWeekPlan,
   };
 
   return (

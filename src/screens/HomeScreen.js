@@ -90,81 +90,6 @@ const HomeScreen = ({ navigation }) => {
     }, [fetchWeekPlan, weekPlan])
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
   const handleLogout = async () => {
     try {
       await logout();
@@ -214,11 +139,15 @@ const HomeScreen = ({ navigation }) => {
     }
 
     if (!weekPlan || Object.keys(weekPlan).length === 0) {
-      return <Text style={styles.workoutText}>No workout plan available</Text>;
+      return (
+        <Text style={styles.workoutText}>
+          No active workout plan. Please select a plan from Saved Workouts.
+        </Text>
+      );
     }
 
     const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
-    const dayPlan = weekPlan.days ? weekPlan.days[dayKey] : weekPlan[dayKey];
+    const dayPlan = weekPlan.data ? weekPlan.data[dayKey] : null;
 
     if (!dayPlan) {
       return (

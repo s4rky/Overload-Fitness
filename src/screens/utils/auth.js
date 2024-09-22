@@ -147,3 +147,27 @@ export const updateWeekPlan = async (planId, updatedPlan) => {
 
   return response.json();
 };
+export const setActiveWeekPlan = async (planId) => {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/weekplans/${planId}/set_active/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": await fetchCsrfToken(),
+        },
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to set active week plan");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error setting active week plan:", error);
+    throw error;
+  }
+};

@@ -14,7 +14,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 
 const SavedWorkoutScreen = () => {
-  const { allWeekPlans, loadAllWeekPlans, deletePlan } = useWorkoutPlan();
+  const { allWeekPlans, loadAllWeekPlans, deletePlan, setActiveWeekPlan } =
+    useWorkoutPlan();
   const [localWeekPlans, setLocalWeekPlans] = useState([]);
   const navigation = useNavigation();
 
@@ -65,10 +66,26 @@ const SavedWorkoutScreen = () => {
     navigation.navigate("CreateWorkout", { editPlan: plan });
   };
 
+  const handleUse = async (planId) => {
+    try {
+      await setActiveWeekPlan(planId);
+      Alert.alert("Success", "Workout plan set as active");
+    } catch (error) {
+      console.error("Error setting active plan:", error);
+      Alert.alert("Error", "Failed to set workout plan as active");
+    }
+  };
+
   const renderWorkoutPanel = (workout) => (
     <View key={workout.id} style={styles.workoutPanel}>
       <Text style={styles.workoutName}>{workout.name}</Text>
       <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          onPress={() => handleUse(workout.id)}
+          style={styles.useButton}
+        >
+          <Icon name="play" size={24} color="#fff" />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleEdit(workout)}
           style={styles.editButton}
@@ -153,6 +170,10 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 10,
+  },
+  useButton: {
+    padding: 10,
+    marginRight: 10,
   },
 });
 

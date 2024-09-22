@@ -61,5 +61,5 @@ class ExerciseSerializer(serializers.ModelSerializer):
 class WeekPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = WeekPlan
-        fields = ["id", "user", "name", "data", "created_at"]
+        fields = ["id", "user", "name", "data", "created_at", "is_active"]
         read_only_fields = ["user", "created_at"]

@@ -37,9 +37,17 @@ class WeekPlan(models.Model):
     name = models.CharField(max_length=100, default="Unnamed Plan")  # New field
     data = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=False)  # New field
+
 
     class Meta:
         ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.name} for {self.user.username} - {self.created_at}"
+    
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            # Set all other plans to inactive
+            WeekPlan.objects.filter(user=self.user).update(is_active=False)
+        super().save(*args, **kwargs)

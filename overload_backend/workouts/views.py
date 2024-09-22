@@ -106,9 +106,30 @@ class WeekPlanViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return WeekPlan.objects.filter(user=self.request.user)
+    
+    @action(detail=True, methods=['POST'])
+    def set_active(self, request, pk=None):
+        plan = self.get_object()
+        plan.is_active = True
+        plan.save()
+        return Response({'status': 'Plan set as active'})
+
+    @action(detail=False, methods=['GET'])
+    def active(self, request):
+        active_plan = self.get_queryset().filter(is_active=True).first()
+        if active_plan:
+            serializer = self.get_serializer(active_plan)
+            return Response(serializer.data)
+        else:
+            return Response({'detail': 'No active plan found'}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=["GET"])
     def latest(self, request):
+        active_plan = self.get_queryset().filter(is_active=True).first()
+        if active_plan:
+            serializer = self.get_serializer(active_plan)
+            return Response(serializer.data)
+        
         latest_plan = self.get_queryset().order_by("-created_at").first()
         if latest_plan:
             serializer = self.get_serializer(latest_plan)
