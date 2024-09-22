@@ -5,12 +5,17 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { fetchLatestWeekPlan, saveWeekPlan } from "../utils/auth";
+import {
+  fetchLatestWeekPlan,
+  saveWeekPlan,
+  fetchAllWeekPlans,
+} from "../utils/auth";
 
 const WorkoutPlanContext = createContext();
 
 export const WorkoutPlanProvider = ({ children }) => {
   const [weekPlan, setWeekPlan] = useState(null);
+  const [allWeekPlans, setAllWeekPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadWeekPlan = useCallback(async () => {
@@ -35,6 +40,8 @@ export const WorkoutPlanProvider = ({ children }) => {
     try {
       await saveWeekPlan(newPlan);
       setWeekPlan(newPlan);
+      // After saving, update the list of all week plans
+      await loadAllWeekPlans();
     } catch (error) {
       console.error("Error saving week plan:", error);
     } finally {
@@ -42,15 +49,31 @@ export const WorkoutPlanProvider = ({ children }) => {
     }
   }, []);
 
+  const loadAllWeekPlans = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const plans = await fetchAllWeekPlans();
+      setAllWeekPlans(plans);
+    } catch (error) {
+      console.error("Error fetching all week plans:", error);
+      setAllWeekPlans([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadWeekPlan();
-  }, [loadWeekPlan]);
+    loadAllWeekPlans();
+  }, [loadWeekPlan, loadAllWeekPlans]);
 
   const value = {
     weekPlan,
+    allWeekPlans,
     isLoading,
     loadWeekPlan,
     updateWeekPlan,
+    loadAllWeekPlans,
   };
 
   return (

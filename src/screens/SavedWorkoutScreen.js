@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -6,24 +6,21 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWorkoutPlan } from "./components/WorkoutPlanContext";
 
 const SavedWorkoutScreen = () => {
-  const { weekPlan } = useWorkoutPlan();
-  const [savedWorkouts, setSavedWorkouts] = useState([]);
+  const { allWeekPlans, loadAllWeekPlans, isLoading } = useWorkoutPlan();
 
   useEffect(() => {
-    if (weekPlan) {
-      setSavedWorkouts([weekPlan]);
-    }
-  }, [weekPlan]);
+    loadAllWeekPlans();
+  }, [loadAllWeekPlans]);
 
   const renderWorkoutPanel = (workout, index) => (
     <TouchableOpacity key={index} style={styles.workoutPanel}>
       <Text style={styles.workoutName}>{workout.name}</Text>
+      {/* You can add more details here if needed */}
     </TouchableOpacity>
   );
 
@@ -32,8 +29,10 @@ const SavedWorkoutScreen = () => {
       <SafeAreaView style={styles.safeArea}>
         <Text style={styles.title}>Saved Workouts</Text>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {savedWorkouts.length > 0 ? (
-            savedWorkouts.map(renderWorkoutPanel)
+          {isLoading ? (
+            <Text style={styles.loadingText}>Loading workouts...</Text>
+          ) : allWeekPlans.length > 0 ? (
+            allWeekPlans.map(renderWorkoutPanel)
           ) : (
             <Text style={styles.noWorkoutsText}>
               No saved workouts. Create a workout to see it here!
@@ -74,6 +73,12 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   noWorkoutsText: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 50,
+  },
+  loadingText: {
     fontSize: 18,
     color: "#bbb",
     textAlign: "center",
