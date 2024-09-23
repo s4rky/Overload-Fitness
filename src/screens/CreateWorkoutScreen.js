@@ -41,7 +41,7 @@ const CreateWorkoutScreen = () => {
   const [isRestDay, setIsRestDay] = useState(true);
   const [exercises, setExercises] = useState([]);
   const [workoutName, setWorkoutName] = useState("");
-  const { weekPlan, updateWeekPlan } = useWorkoutPlan();
+  const { weekPlan, updateWeekPlan, setSelectedWeekPlan } = useWorkoutPlan();
   const dayNameInputRef = useRef(null);
   const workoutNameInputRef = useRef(null);
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null);
@@ -218,11 +218,11 @@ const CreateWorkoutScreen = () => {
       await updateWeekPlan(planToSave);
       Alert.alert(
         "Plan Saved",
-        "Your workout plan has been saved successfully!",
+        "Your workout plan has been saved and set as the active plan!",
         [
           {
             text: "OK",
-            onPress: () => navigation.navigate("Home"), // Navigate to HomeScreen
+            onPress: () => navigation.navigate("Home"),
           },
         ]
       );

@@ -14,7 +14,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 
 const SavedWorkoutScreen = () => {
-  const { allWeekPlans, loadAllWeekPlans, deletePlan } = useWorkoutPlan();
+  const { allWeekPlans, loadAllWeekPlans, deletePlan, selectWeekPlan } =
+    useWorkoutPlan();
   const [localWeekPlans, setLocalWeekPlans] = useState([]);
   const navigation = useNavigation();
 
@@ -65,18 +66,39 @@ const SavedWorkoutScreen = () => {
     navigation.navigate("CreateWorkout", { editPlan: plan });
   };
 
-  const renderWorkoutPanel = (workout) => (
-    <View key={workout.id} style={styles.workoutPanel}>
-      <Text style={styles.workoutName}>{workout.name}</Text>
+  const handleSelectPlan = (plan) => {
+    console.log("Selecting plan in SavedWorkoutScreen:", plan);
+    selectWeekPlan(plan);
+    Alert.alert(
+      "Plan Selected",
+      `${plan.name} has been set as your active plan.`,
+      [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("Home"),
+        },
+      ]
+    );
+  };
+
+  const renderWorkoutPanel = (plan) => (
+    <View key={plan.id} style={styles.workoutPanel}>
+      <Text style={styles.workoutName}>{plan.name}</Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          onPress={() => handleEdit(workout)}
+          onPress={() => handleSelectPlan(plan)}
+          style={styles.selectButton}
+        >
+          <Icon name="checkmark-circle" size={24} color="#4CAF50" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleEdit(plan)}
           style={styles.editButton}
         >
           <Icon name="pencil" size={24} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => handleDelete(workout.id)}
+          onPress={() => handleDelete(plan.id)}
           style={styles.deleteButton}
         >
           <Icon name="trash" size={24} color="#fff" />
@@ -153,6 +175,10 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 10,
+  },
+  selectButton: {
+    padding: 10,
+    marginRight: 10,
   },
 });
 

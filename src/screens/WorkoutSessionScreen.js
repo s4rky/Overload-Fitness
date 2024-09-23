@@ -23,7 +23,11 @@ const WorkoutSessionScreen = () => {
   const flatListRef = useRef(null);
   const [exercises, setExercises] = useState([]);
   const [dayName, setDayName] = useState("");
-  const { weekPlan, isLoading: isContextLoading } = useWorkoutPlan();
+  const {
+    weekPlan,
+    selectedWeekPlan,
+    isLoading: isContextLoading,
+  } = useWorkoutPlan();
   const [isScreenLoading, setIsScreenLoading] = useState(true);
 
   useEffect(() => {
@@ -40,25 +44,28 @@ const WorkoutSessionScreen = () => {
     console.log("useEffect triggered");
     console.log("isContextLoading:", isContextLoading);
     console.log("weekPlan:", JSON.stringify(weekPlan, null, 2));
+    console.log("selectedWeekPlan:", JSON.stringify(selectedWeekPlan, null, 2));
 
     if (!isContextLoading) {
       loadTodayWorkout();
     }
-  }, [weekPlan, isContextLoading]);
+  }, [weekPlan, selectedWeekPlan, isContextLoading]);
 
   const loadTodayWorkout = () => {
     console.log("loadTodayWorkout called");
     setIsScreenLoading(true);
 
-    if (!weekPlan) {
-      console.log("weekPlan is falsy:", weekPlan);
+    const activePlan = selectedWeekPlan || weekPlan;
+
+    if (!activePlan) {
+      console.log("No active plan available");
       setDayName("No workout plan available");
       setExercises([]);
       setIsScreenLoading(false);
       return;
     }
 
-    console.log("weekPlan:", JSON.stringify(weekPlan, null, 2));
+    console.log("Active plan:", JSON.stringify(activePlan, null, 2));
 
     const today = new Date()
       .toLocaleString("en-us", { weekday: "short" })
@@ -66,10 +73,9 @@ const WorkoutSessionScreen = () => {
     console.log("Today:", today);
 
     // Handle both data structures
-    const days = weekPlan.days || weekPlan;
+    const days = activePlan.days || activePlan;
     const todayPlan = days[today];
     console.log("Today's plan:", JSON.stringify(todayPlan, null, 2));
-
     if (todayPlan && !todayPlan.isRest) {
       console.log("Setting up workout for today");
       setDayName(todayPlan.name);
@@ -306,6 +312,10 @@ const WorkoutSessionScreen = () => {
           onPress={() => {
             console.log("Debug button pressed");
             console.log("Current weekPlan:", JSON.stringify(weekPlan, null, 2));
+            console.log(
+              "Current selectedWeekPlan:",
+              JSON.stringify(selectedWeekPlan, null, 2)
+            );
             loadTodayWorkout();
           }}
         >
