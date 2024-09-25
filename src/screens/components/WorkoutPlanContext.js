@@ -17,6 +17,7 @@ const WorkoutPlanContext = createContext();
 
 export const WorkoutPlanProvider = ({ children }) => {
   const [weekPlan, setWeekPlan] = useState(null);
+  const [selectedWeekPlan, setSelectedWeekPlan] = useState(null);
   const [allWeekPlans, setAllWeekPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,19 +38,44 @@ export const WorkoutPlanProvider = ({ children }) => {
     }
   }, []);
 
-  const updateWeekPlan = useCallback(async (newPlan) => {
-    setIsLoading(true);
-    try {
-      await saveWeekPlan(newPlan);
-      setWeekPlan(newPlan);
-      // After saving, update the list of all week plans
-      await loadAllWeekPlans();
-    } catch (error) {
-      console.error("Error saving week plan:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  const selectWeekPlan = useCallback((plan) => {
+    console.log("Selecting week plan in context:", plan);
+    const formattedPlan = {
+      name: plan.name,
+      ...plan.data, // Spread the data object directly
+    };
+    console.log("Formatted plan:", formattedPlan);
+    setSelectedWeekPlan(formattedPlan);
   }, []);
+
+  useEffect(() => {
+    console.log("Selected week plan updated:", selectedWeekPlan);
+  }, [selectedWeekPlan]);
+
+  const updateWeekPlan = useCallback(
+    async (newPlan) => {
+      setIsLoading(true);
+      try {
+        const savedPlan = await saveWeekPlan(newPlan);
+        console.log("Saved plan:", savedPlan);
+
+        // Format the saved plan to match the expected structure
+        const formattedPlan = {
+          name: savedPlan.name,
+          ...savedPlan.data,
+        };
+
+        setWeekPlan(formattedPlan);
+        setSelectedWeekPlan(formattedPlan); // Set the newly created plan as the selected plan
+        await loadAllWeekPlans();
+      } catch (error) {
+        console.error("Error saving week plan:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [loadAllWeekPlans]
+  );
 
   const loadAllWeekPlans = useCallback(async () => {
     setIsLoading(true);
@@ -111,6 +137,9 @@ export const WorkoutPlanProvider = ({ children }) => {
 
   const value = {
     weekPlan,
+    selectedWeekPlan,
+    setSelectedWeekPlan,
+    selectWeekPlan,
     allWeekPlans,
     isLoading,
     loadWeekPlan,

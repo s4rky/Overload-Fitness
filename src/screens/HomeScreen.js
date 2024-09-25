@@ -26,7 +26,8 @@ const { width } = Dimensions.get("window");
 const HomeScreen = ({ navigation }) => {
   const today = new Date();
 
-  const { weekPlan, fetchWeekPlan, isLoading } = useWorkoutPlan();
+  const { weekPlan, selectedWeekPlan, fetchWeekPlan, isLoading } =
+    useWorkoutPlan();
   const [showWorkout, setShowWorkout] = useState(false);
   const [selectedDay, setSelectedDay] = useState(today.getDay());
   const [areDaysClickable, setAreDaysClickable] = useState(true);
@@ -38,6 +39,7 @@ const HomeScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [nickname, setNickname] = useState("");
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const activePlan = selectedWeekPlan || weekPlan;
 
   const formattedDate = today.toDateString();
   const days = [
@@ -58,6 +60,10 @@ const HomeScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    console.log("Active plan in HomeScreen:", activePlan);
+  }, [activePlan]);
+
+  useEffect(() => {
     fetchUserInfo();
 
     navigation.setOptions({
@@ -74,81 +80,6 @@ const HomeScreen = ({ navigation }) => {
       useNativeDriver: true,
     }).start();
   }, [fetchUserInfo]);
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (isActive && !weekPlan) {
-          await fetchWeekPlan();
-        }
-      };
-      fetchData();
-      return () => {
-        isActive = false;
-      };
-    }, [fetchWeekPlan, weekPlan])
-  );
 
   useFocusEffect(
     useCallback(() => {
@@ -213,18 +144,23 @@ const HomeScreen = ({ navigation }) => {
       return <Text style={styles.workoutText}>Loading workout plan...</Text>;
     }
 
-    if (!weekPlan || Object.keys(weekPlan).length === 0) {
+    if (!activePlan || Object.keys(activePlan).length === 0) {
+      console.log("No active plan available");
       return <Text style={styles.workoutText}>No workout plan available</Text>;
     }
 
     const dayKey = days[selectedDay].toLowerCase().slice(0, 3);
-    const dayPlan = weekPlan.days ? weekPlan.days[dayKey] : weekPlan[dayKey];
+    console.log("Attempting to access day:", dayKey);
+    const dayPlan = activePlan[dayKey];
 
     if (!dayPlan) {
+      console.log("No plan found for day:", dayKey);
       return (
         <Text style={styles.workoutText}>No workout plan for this day</Text>
       );
     }
+
+    console.log("Day plan:", dayPlan);
 
     return (
       <Animated.View style={[styles.workoutContainer, { opacity: fadeAnim }]}>
