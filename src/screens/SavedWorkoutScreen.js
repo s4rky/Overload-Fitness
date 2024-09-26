@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-  Alert,
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWorkoutPlan } from "./components/WorkoutPlanContext";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
+import CustomAlert from "./utils/CustomAlert";
 
 const SavedWorkoutScreen = () => {
   const {
@@ -25,6 +25,13 @@ const SavedWorkoutScreen = () => {
   const [localWeekPlans, setLocalWeekPlans] = useState([]);
   const navigation = useNavigation();
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({});
+
+  const showAlert = (config) => {
+    setAlertConfig(config);
+    setAlertVisible(true);
+  };
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -43,32 +50,28 @@ const SavedWorkoutScreen = () => {
   }, [allWeekPlans]);
 
   const handleDelete = (planId) => {
-    Alert.alert(
-      "Delete Workout",
-      "Are you sure you want to delete this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          onPress: async () => {
-            setLocalWeekPlans((prevPlans) =>
-              prevPlans.filter((plan) => plan.id !== planId)
-            );
-            try {
-              await deletePlan(planId);
-            } catch (error) {
-              console.error("Failed to delete plan:", error);
-              Alert.alert(
-                "Error",
-                "Failed to delete the workout. Please try again."
-              );
-              setLocalWeekPlans(allWeekPlans);
-            }
-          },
-          style: "destructive",
-        },
-      ]
-    );
+    showAlert({
+      title: "Delete Workout",
+      message: "Are you sure you want to delete this workout?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        setLocalWeekPlans((prevPlans) =>
+          prevPlans.filter((plan) => plan.id !== planId)
+        );
+        try {
+          await deletePlan(planId);
+        } catch (error) {
+          console.error("Failed to delete plan:", error);
+          showAlert({
+            title: "Error",
+            message: "Failed to delete the workout. Please try again.",
+            onConfirm: () => setLocalWeekPlans(allWeekPlans),
+          });
+        }
+      },
+      onCancel: () => {},
+    });
   };
 
   const handleEdit = (plan) => {
@@ -76,19 +79,25 @@ const SavedWorkoutScreen = () => {
   };
 
   const handleSelectPlan = (plan) => {
-    selectWeekPlan(plan);
-    Alert.alert(
-      "Plan Selected",
-      `${plan.name} has been set as your active plan.`,
-      [
-        {
-          text: "OK",
-          onPress: () => {
+    showAlert({
+      title: "Select Plan",
+      message: `Do you want to set "${plan.name}" as your active plan?`,
+      confirmText: "Yes",
+      cancelText: "No",
+      onConfirm: () => {
+        selectWeekPlan(plan);
+        showAlert({
+          title: "Plan Selected",
+          message: `${plan.name} has been set as your active plan.`,
+          onConfirm: () => {
             navigation.navigate("Home");
           },
-        },
-      ]
-    );
+        });
+      },
+      onCancel: () => {
+        // Do nothing if the user cancels
+      },
+    });
   };
 
   const renderWorkoutPanel = (plan) => {
@@ -174,6 +183,21 @@ const SavedWorkoutScreen = () => {
           <Text style={styles.createButtonText}>Create New Workout</Text>
         </TouchableOpacity>
       </SafeAreaView>
+      <CustomAlert
+        visible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        onConfirm={() => {
+          alertConfig.onConfirm();
+          setAlertVisible(false);
+        }}
+        onCancel={() => {
+          alertConfig.onCancel && alertConfig.onCancel();
+          setAlertVisible(false);
+        }}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+      />
     </LinearGradient>
   );
 };
