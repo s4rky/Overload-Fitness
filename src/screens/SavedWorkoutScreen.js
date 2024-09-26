@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useWorkoutPlan } from "./components/WorkoutPlanContext";
@@ -23,13 +24,19 @@ const SavedWorkoutScreen = () => {
   } = useWorkoutPlan();
   const [localWeekPlans, setLocalWeekPlans] = useState([]);
   const navigation = useNavigation();
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     const fetchPlans = async () => {
       await loadAllWeekPlans();
     };
     fetchPlans();
-  }, [loadAllWeekPlans]);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [loadAllWeekPlans, fadeAnim]);
 
   useEffect(() => {
     setLocalWeekPlans(allWeekPlans);
@@ -69,10 +76,6 @@ const SavedWorkoutScreen = () => {
   };
 
   const handleSelectPlan = (plan) => {
-    console.log(
-      "Selecting plan in SavedWorkoutScreen:",
-      JSON.stringify(plan, null, 2)
-    );
     selectWeekPlan(plan);
     Alert.alert(
       "Plan Selected",
@@ -92,50 +95,68 @@ const SavedWorkoutScreen = () => {
     const isCurrentPlan = plan.id === currentPlanId;
 
     return (
-      <View key={plan.id} style={styles.workoutPanel}>
-        <View style={styles.workoutHeader}>
-          <Text style={styles.workoutName}>{plan.name}</Text>
-          {isCurrentPlan && (
-            <View style={styles.currentPlanTag}>
-              <Text style={styles.currentPlanTagText}>Current Plan</Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            onPress={() => handleSelectPlan(plan)}
-            style={[
-              styles.selectButton,
-              isCurrentPlan && styles.currentSelectButton,
-            ]}
-          >
-            <Icon
-              name="checkmark-circle"
-              size={24}
-              color={isCurrentPlan ? "#FFC107" : "#4CAF50"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleEdit(plan)}
-            style={styles.editButton}
-          >
-            <Icon name="pencil" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleDelete(plan.id)}
-            style={styles.deleteButton}
-          >
-            <Icon name="trash" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Animated.View
+        key={plan.id}
+        style={[styles.workoutPanel, { opacity: fadeAnim }]}
+      >
+        <LinearGradient
+          colors={
+            isCurrentPlan ? ["#2E7D32", "#1B5E20"] : ["#2c3e50", "#34495e"]
+          }
+          style={styles.gradientBackground}
+        >
+          <View style={styles.workoutHeader}>
+            <Text style={styles.workoutName}>{plan.name}</Text>
+            {isCurrentPlan && (
+              <View style={styles.currentPlanTag}>
+                <Icon name="checkmark-circle" size={20} color="#fff" />
+                <Text style={styles.currentPlanTagText}>Current Plan</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.workoutInfo}>
+            <Text style={styles.workoutInfoText}>
+              {Object.values(plan.data).filter((day) => !day.isRest).length}{" "}
+              workout days
+            </Text>
+          </View>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              onPress={() => handleSelectPlan(plan)}
+              style={[
+                styles.button,
+                isCurrentPlan
+                  ? styles.currentSelectButton
+                  : styles.selectButton,
+              ]}
+            >
+              <Icon name="play-circle-outline" size={24} color="#fff" />
+              <Text style={styles.buttonText}>Select</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleEdit(plan)}
+              style={[styles.button, styles.editButton]}
+            >
+              <Icon name="pencil-outline" size={24} color="#fff" />
+              <Text style={styles.buttonText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDelete(plan.id)}
+              style={[styles.button, styles.deleteButton]}
+            >
+              <Icon name="trash-outline" size={24} color="#fff" />
+              <Text style={styles.buttonText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </Animated.View>
     );
   };
 
   return (
     <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <Text style={styles.title}>Saved Workouts</Text>
+        <Text style={styles.title}>My Plans</Text>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {localWeekPlans.length > 0 ? (
             localWeekPlans.map(renderWorkoutPanel)
@@ -145,6 +166,13 @@ const SavedWorkoutScreen = () => {
             </Text>
           )}
         </ScrollView>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate("CreateWorkout")}
+        >
+          <Icon name="add-circle-outline" size={24} color="#fff" />
+          <Text style={styles.createButtonText}>Create New Workout</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -158,7 +186,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
@@ -168,37 +196,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   workoutPanel: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 10,
+    borderRadius: 15,
+    marginBottom: 20,
+    overflow: "hidden",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  gradientBackground: {
     padding: 20,
-    marginBottom: 15,
-  },
-  workoutName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  noWorkoutsText: {
-    fontSize: 18,
-    color: "#bbb",
-    textAlign: "center",
-    marginTop: 50,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 10,
-  },
-  editButton: {
-    padding: 10,
-    marginRight: 10,
-  },
-  deleteButton: {
-    padding: 10,
-  },
-  selectButton: {
-    padding: 10,
-    marginRight: 10,
   },
   workoutHeader: {
     flexDirection: "row",
@@ -206,20 +214,84 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
+  workoutName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+  },
   currentPlanTag: {
-    backgroundColor: "#FFC107",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
   },
   currentPlanTagText: {
-    color: "#000",
+    color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
+    marginLeft: 5,
+  },
+  workoutInfo: {
+    marginBottom: 15,
+  },
+  workoutInfoText: {
+    color: "rgba(255, 255, 255, 0.9)",
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  button: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 8,
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 5,
+  },
+  selectButton: {
+    backgroundColor: "#4CAF50",
   },
   currentSelectButton: {
-    backgroundColor: "rgba(255, 193, 7, 0.2)",
-    borderRadius: 20,
+    backgroundColor: "#81C784",
+  },
+  editButton: {
+    backgroundColor: "#FFA000",
+  },
+  deleteButton: {
+    backgroundColor: "#D32F2F",
+  },
+  noWorkoutsText: {
+    fontSize: 18,
+    color: "#bbb",
+    textAlign: "center",
+    marginTop: 50,
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2196F3",
+    padding: 15,
+    borderRadius: 10,
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  createButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 10,
   },
 });
 

@@ -34,7 +34,7 @@ const CustomDrawerContent = (props) => {
           label="Saved Workouts"
           onPress={() => {
             // Implement your logout logic here
-            props.navigation.navigate("Saved");
+            props.navigation.navigate("Saved Workouts");
           }}
           icon={({ color, size }) => (
             <Icon name="save-outline" color="#007AFF" size={size} />
