@@ -14,14 +14,18 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 
 const SavedWorkoutScreen = () => {
-  const { allWeekPlans, loadAllWeekPlans, deletePlan, selectWeekPlan } =
-    useWorkoutPlan();
+  const {
+    allWeekPlans,
+    loadAllWeekPlans,
+    deletePlan,
+    selectWeekPlan,
+    currentPlanId,
+  } = useWorkoutPlan();
   const [localWeekPlans, setLocalWeekPlans] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchPlans = async () => {
-      setLocalWeekPlans(allWeekPlans);
       await loadAllWeekPlans();
     };
     fetchPlans();
@@ -40,14 +44,12 @@ const SavedWorkoutScreen = () => {
         {
           text: "Delete",
           onPress: async () => {
-            // Optimistically update UI
             setLocalWeekPlans((prevPlans) =>
               prevPlans.filter((plan) => plan.id !== planId)
             );
             try {
               await deletePlan(planId);
             } catch (error) {
-              // If deletion fails, revert the UI
               console.error("Failed to delete plan:", error);
               Alert.alert(
                 "Error",
@@ -67,7 +69,10 @@ const SavedWorkoutScreen = () => {
   };
 
   const handleSelectPlan = (plan) => {
-    console.log("Selecting plan in SavedWorkoutScreen:", plan);
+    console.log(
+      "Selecting plan in SavedWorkoutScreen:",
+      JSON.stringify(plan, null, 2)
+    );
     selectWeekPlan(plan);
     Alert.alert(
       "Plan Selected",
@@ -75,37 +80,57 @@ const SavedWorkoutScreen = () => {
       [
         {
           text: "OK",
-          onPress: () => navigation.navigate("Home"),
+          onPress: () => {
+            navigation.navigate("Home");
+          },
         },
       ]
     );
   };
 
-  const renderWorkoutPanel = (plan) => (
-    <View key={plan.id} style={styles.workoutPanel}>
-      <Text style={styles.workoutName}>{plan.name}</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={() => handleSelectPlan(plan)}
-          style={styles.selectButton}
-        >
-          <Icon name="checkmark-circle" size={24} color="#4CAF50" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleEdit(plan)}
-          style={styles.editButton}
-        >
-          <Icon name="pencil" size={24} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => handleDelete(plan.id)}
-          style={styles.deleteButton}
-        >
-          <Icon name="trash" size={24} color="#fff" />
-        </TouchableOpacity>
+  const renderWorkoutPanel = (plan) => {
+    const isCurrentPlan = plan.id === currentPlanId;
+
+    return (
+      <View key={plan.id} style={styles.workoutPanel}>
+        <View style={styles.workoutHeader}>
+          <Text style={styles.workoutName}>{plan.name}</Text>
+          {isCurrentPlan && (
+            <View style={styles.currentPlanTag}>
+              <Text style={styles.currentPlanTagText}>Current Plan</Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            onPress={() => handleSelectPlan(plan)}
+            style={[
+              styles.selectButton,
+              isCurrentPlan && styles.currentSelectButton,
+            ]}
+          >
+            <Icon
+              name="checkmark-circle"
+              size={24}
+              color={isCurrentPlan ? "#FFC107" : "#4CAF50"}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleEdit(plan)}
+            style={styles.editButton}
+          >
+            <Icon name="pencil" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleDelete(plan.id)}
+            style={styles.deleteButton}
+          >
+            <Icon name="trash" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <LinearGradient colors={["#1a1a2e", "#16213e"]} style={styles.container}>
@@ -124,6 +149,7 @@ const SavedWorkoutScreen = () => {
     </LinearGradient>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -158,12 +184,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 50,
   },
-  loadingText: {
-    fontSize: 18,
-    color: "#bbb",
-    textAlign: "center",
-    marginTop: 50,
-  },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -179,6 +199,27 @@ const styles = StyleSheet.create({
   selectButton: {
     padding: 10,
     marginRight: 10,
+  },
+  workoutHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  currentPlanTag: {
+    backgroundColor: "#FFC107",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  currentPlanTagText: {
+    color: "#000",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  currentSelectButton: {
+    backgroundColor: "rgba(255, 193, 7, 0.2)",
+    borderRadius: 20,
   },
 });
 

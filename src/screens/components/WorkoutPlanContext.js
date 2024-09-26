@@ -20,6 +20,7 @@ export const WorkoutPlanProvider = ({ children }) => {
   const [selectedWeekPlan, setSelectedWeekPlan] = useState(null);
   const [allWeekPlans, setAllWeekPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPlanId, setCurrentPlanId] = useState(null);
 
   const loadWeekPlan = useCallback(async () => {
     setIsLoading(true);
@@ -27,12 +28,15 @@ export const WorkoutPlanProvider = ({ children }) => {
       const latestPlan = await fetchLatestWeekPlan();
       if (latestPlan && latestPlan.data) {
         setWeekPlan(latestPlan.data);
+        setCurrentPlanId(latestPlan.id);
       } else {
         setWeekPlan(null);
+        setCurrentPlanId(null);
       }
     } catch (error) {
       console.error("Error fetching week plan:", error);
       setWeekPlan(null);
+      setCurrentPlanId(null);
     } finally {
       setIsLoading(false);
     }
@@ -42,15 +46,16 @@ export const WorkoutPlanProvider = ({ children }) => {
     console.log("Selecting week plan in context:", plan);
     const formattedPlan = {
       name: plan.name,
-      ...plan.data, // Spread the data object directly
+      ...plan.data,
     };
-    console.log("Formatted plan:", formattedPlan);
     setSelectedWeekPlan(formattedPlan);
+    setCurrentPlanId(plan.id);
   }, []);
 
   useEffect(() => {
     console.log("Selected week plan updated:", selectedWeekPlan);
-  }, [selectedWeekPlan]);
+    console.log("Current plan ID updated:", currentPlanId);
+  }, [selectedWeekPlan, currentPlanId]);
 
   const updateWeekPlan = useCallback(
     async (newPlan) => {
@@ -66,7 +71,8 @@ export const WorkoutPlanProvider = ({ children }) => {
         };
 
         setWeekPlan(formattedPlan);
-        setSelectedWeekPlan(formattedPlan); // Set the newly created plan as the selected plan
+        setSelectedWeekPlan(formattedPlan);
+        setCurrentPlanId(savedPlan.id);
         await loadAllWeekPlans();
       } catch (error) {
         console.error("Error saving week plan:", error);
@@ -76,19 +82,6 @@ export const WorkoutPlanProvider = ({ children }) => {
     },
     [loadAllWeekPlans]
   );
-
-  const loadAllWeekPlans = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const plans = await fetchAllWeekPlans();
-      setAllWeekPlans(plans);
-    } catch (error) {
-      console.error("Error fetching all week plans:", error);
-      setAllWeekPlans([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   const deletePlan = useCallback(
     async (planId) => {
@@ -129,6 +122,18 @@ export const WorkoutPlanProvider = ({ children }) => {
     },
     [weekPlan]
   );
+  const loadAllWeekPlans = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const plans = await fetchAllWeekPlans();
+      setAllWeekPlans(plans);
+    } catch (error) {
+      console.error("Error fetching all week plans:", error);
+      setAllWeekPlans([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadWeekPlan();
@@ -147,6 +152,7 @@ export const WorkoutPlanProvider = ({ children }) => {
     loadAllWeekPlans,
     deletePlan,
     updatePlan,
+    currentPlanId,
   };
 
   return (
