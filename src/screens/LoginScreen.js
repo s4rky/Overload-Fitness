@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  Animated,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { login, fetchCsrfToken } from "./utils/auth";
@@ -21,11 +22,18 @@ const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     fetchCsrfToken().catch((error) => {
       console.error("Error fetching CSRF token:", error);
     });
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const handleLogin = async () => {
@@ -53,23 +61,28 @@ const LoginScreen = ({ navigation }) => {
           style={styles.keyboardAvoidingView}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.inner}>
+            <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
+              <View style={styles.logoContainer}>
+                <Icon name="barbell-outline" size={80} color="#3498db" />
+              </View>
               <View style={styles.titleContainer}>
-                <Text style={styles.title}>Welcome Back</Text>
-                <Text style={styles.subtitle}>Log in to continue</Text>
+                <Text style={styles.title}>Overload</Text>
+                <Text style={styles.subtitle}>
+                  Log in to start your workout
+                </Text>
               </View>
               <View style={styles.formContainer}>
                 <View style={styles.inputWrapper}>
                   <Icon
                     name="person-outline"
                     size={20}
-                    color="#4CAF50"
+                    color="#3498db"
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Username"
-                    placeholderTextColor="#666"
+                    placeholderTextColor="#999"
                     value={username}
                     onChangeText={setUsername}
                     autoCapitalize="none"
@@ -80,13 +93,13 @@ const LoginScreen = ({ navigation }) => {
                   <Icon
                     name="lock-closed-outline"
                     size={20}
-                    color="#4CAF50"
+                    color="#3498db"
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Password"
-                    placeholderTextColor="#666"
+                    placeholderTextColor="#999"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
@@ -98,7 +111,9 @@ const LoginScreen = ({ navigation }) => {
                   disabled={isLoading}
                 >
                   <LinearGradient
-                    colors={["#4CAF50", "#45a049"]}
+                    colors={["#f39c12", "#e67e22"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
                     style={styles.buttonGradient}
                   >
                     <Text style={styles.buttonText}>
@@ -111,11 +126,12 @@ const LoginScreen = ({ navigation }) => {
                   onPress={() => navigation.navigate("Signup")}
                 >
                   <Text style={styles.linkButtonText}>
-                    Don't have an account? Sign up
+                    Don't have an account?{" "}
+                    <Text style={styles.signUpText}>Sign up</Text>
                   </Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </Animated.View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -136,16 +152,23 @@ const styles = StyleSheet.create({
   inner: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: 30,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 30,
   },
   titleContainer: {
     marginBottom: 40,
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   subtitle: {
     fontSize: 18,
@@ -162,6 +185,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 10,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(52, 152, 219, 0.5)",
   },
   inputIcon: {
     padding: 10,
@@ -174,9 +199,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
-    borderRadius: 10,
+    borderRadius: 25,
     overflow: "hidden",
-    marginTop: 10,
+    marginTop: 20,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   buttonGradient: {
     paddingVertical: 15,
@@ -192,8 +222,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   linkButtonText: {
-    color: "#4CAF50",
+    color: "#bbb",
     fontSize: 16,
+  },
+  signUpText: {
+    color: "#3498db",
+    fontWeight: "bold",
   },
 });
 

@@ -12,6 +12,7 @@ import {
   Platform,
   StatusBar,
   ScrollView,
+  Animated,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiCall } from "./utils/api";
@@ -25,9 +26,15 @@ const SignupScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     fetchCsrfToken();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const fetchCsrfToken = async () => {
@@ -77,11 +84,14 @@ const SignupScreen = ({ navigation }) => {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
-              <View style={styles.inner}>
+              <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
+                <View style={styles.logoContainer}>
+                  <Icon name="fitness-outline" size={80} color="#3498db" />
+                </View>
                 <View style={styles.titleContainer}>
-                  <Text style={styles.title}>Create Account</Text>
+                  <Text style={styles.title}>Join Overload</Text>
                   <Text style={styles.subtitle}>
-                    Join us and start your fitness journey
+                    Start your fitness journey today
                   </Text>
                 </View>
                 <View style={styles.formContainer}>
@@ -89,13 +99,13 @@ const SignupScreen = ({ navigation }) => {
                     <Icon
                       name="person-outline"
                       size={20}
-                      color="#4CAF50"
+                      color="#3498db"
                       style={styles.inputIcon}
                     />
                     <TextInput
                       style={styles.input}
                       placeholder="Username"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#999"
                       value={username}
                       onChangeText={setUsername}
                       autoCapitalize="none"
@@ -106,13 +116,13 @@ const SignupScreen = ({ navigation }) => {
                     <Icon
                       name="mail-outline"
                       size={20}
-                      color="#4CAF50"
+                      color="#3498db"
                       style={styles.inputIcon}
                     />
                     <TextInput
                       style={styles.input}
                       placeholder="Email"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#999"
                       value={email}
                       onChangeText={setEmail}
                       autoCapitalize="none"
@@ -124,13 +134,13 @@ const SignupScreen = ({ navigation }) => {
                     <Icon
                       name="happy-outline"
                       size={20}
-                      color="#4CAF50"
+                      color="#3498db"
                       style={styles.inputIcon}
                     />
                     <TextInput
                       style={styles.input}
                       placeholder="Nickname"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#999"
                       value={nickname}
                       onChangeText={setNickname}
                       autoCapitalize="words"
@@ -140,13 +150,13 @@ const SignupScreen = ({ navigation }) => {
                     <Icon
                       name="lock-closed-outline"
                       size={20}
-                      color="#4CAF50"
+                      color="#3498db"
                       style={styles.inputIcon}
                     />
                     <TextInput
                       style={styles.input}
                       placeholder="Password"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#999"
                       value={password}
                       onChangeText={setPassword}
                       secureTextEntry
@@ -156,13 +166,13 @@ const SignupScreen = ({ navigation }) => {
                     <Icon
                       name="shield-checkmark-outline"
                       size={20}
-                      color="#4CAF50"
+                      color="#3498db"
                       style={styles.inputIcon}
                     />
                     <TextInput
                       style={styles.input}
                       placeholder="Confirm Password"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#999"
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
                       secureTextEntry
@@ -174,7 +184,9 @@ const SignupScreen = ({ navigation }) => {
                     disabled={isLoading}
                   >
                     <LinearGradient
-                      colors={["#4CAF50", "#45a049"]}
+                      colors={["#f39c12", "#e67e22"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
                       style={styles.buttonGradient}
                     >
                       <Text style={styles.buttonText}>
@@ -187,11 +199,12 @@ const SignupScreen = ({ navigation }) => {
                     onPress={() => navigation.navigate("Login")}
                   >
                     <Text style={styles.linkButtonText}>
-                      Already have an account? Log in
+                      Already have an account?{" "}
+                      <Text style={styles.loginText}>Log in</Text>
                     </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </Animated.View>
             </ScrollView>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -215,16 +228,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   inner: {
-    padding: 20,
+    padding: 30,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 20,
   },
   titleContainer: {
-    marginBottom: 40,
+    marginBottom: 30,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   subtitle: {
     fontSize: 18,
@@ -240,27 +260,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "rgba(52, 152, 219, 0.5)", // Updated to blue
   },
   inputIcon: {
     padding: 10,
   },
-  input: {
-    flex: 1,
-    height: 50,
-    color: "#fff",
-    paddingHorizontal: 15,
-    fontSize: 16,
-  },
   button: {
-    borderRadius: 10,
+    borderRadius: 25,
     overflow: "hidden",
-    marginTop: 10,
+    marginTop: 20,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   buttonGradient: {
     paddingVertical: 15,
     alignItems: "center",
   },
+
   buttonText: {
     color: "white",
     fontSize: 18,
@@ -271,8 +292,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   linkButtonText: {
-    color: "#4CAF50",
+    color: "#bbb",
     fontSize: 16,
+  },
+  loginText: {
+    color: "#3498db", // Updated to blue
+    fontWeight: "bold",
   },
 });
 
